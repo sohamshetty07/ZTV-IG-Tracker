@@ -2,18 +2,27 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import ActorCard, { getViewRateIntensity } from './ActorCard';
-import { Search, Moon, Sun, Filter, LayoutGrid, List, Download, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Search, Moon, Sun, Filter, LayoutGrid, List, Download, PanelLeftClose, PanelLeftOpen, Share2, Check } from 'lucide-react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 export default function DashboardClient({ initialActors }: { initialActors: any[] }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedChannel, setSelectedChannel] = useState('All Channels');
-  const [selectedShow, setSelectedShow] = useState('All Shows');
-  const [selectedGender, setSelectedGender] = useState('All Genders');
-  const [sortBy, setSortBy] = useState('viewRate');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Read from URL on first load, otherwise use defaults
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [selectedChannel, setSelectedChannel] = useState(searchParams.get('channel') || 'All Channels');
+  const [selectedShow, setSelectedShow] = useState(searchParams.get('show') || 'All Shows');
+  const [selectedGender, setSelectedGender] = useState(searchParams.get('gender') || 'All Genders');
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'viewRate');
   
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  
+  // State for the Share button feedback
+  const [copied, setCopied] = useState(false);
 
   // Bulletproof Dark Mode implementation
   useEffect(() => {
@@ -24,6 +33,19 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
       root.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  // Sync state to URL seamlessly
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    if (searchQuery) params.set('q', searchQuery);
+    if (selectedChannel !== 'All Channels') params.set('channel', selectedChannel);
+    if (selectedShow !== 'All Shows') params.set('show', selectedShow);
+    if (selectedGender !== 'All Genders') params.set('gender', selectedGender);
+    if (sortBy !== 'viewRate') params.set('sort', sortBy);
+
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchQuery, selectedChannel, selectedShow, selectedGender, sortBy, pathname, router]);
 
   const uniqueChannels = useMemo(() => ['All Channels', ...Array.from(new Set(initialActors.map(a => a.channel).filter(c => c && c !== '-')))].sort(), [initialActors]);
   const uniqueShows = useMemo(() => ['All Shows', ...Array.from(new Set(initialActors.map(a => a.showName).filter(s => s && s !== '-')))].sort(), [initialActors]);
@@ -71,6 +93,17 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
     link.click();
   };
 
+  // Function to copy the current URL to clipboard
+  const copyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
   return (
     <div className="flex h-screen overflow-hidden font-sans bg-neutral-50 dark:bg-black text-neutral-900 dark:text-neutral-100 transition-colors duration-200">
       
@@ -82,36 +115,50 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
           <h1 className="text-xl font-black tracking-tighter">Talent Data</h1>
         </div>
 
-        <div className="flex-1 overflow-y-auto pb-6 px-1">
-          <div className="flex items-center text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-6"><Filter className="w-3 h-3 mr-2" /> Global Filters</div>
-          
-          <div className="mb-6">
-            <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-2">Network Channel</label>
-            <select className="w-full px-4 py-3 text-sm font-medium bg-neutral-100 dark:bg-[#111] border border-transparent focus:border-black dark:focus:border-neutral-700 rounded-xl outline-none cursor-pointer transition-colors appearance-none" value={selectedChannel} onChange={(e) => setSelectedChannel(e.target.value)}>
-              {uniqueChannels.map(channel => <option key={channel} value={channel}>{channel}</option>)}
-            </select>
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-2">Show Name</label>
-            <select className="w-full px-4 py-3 text-sm font-medium bg-neutral-100 dark:bg-[#111] border border-transparent focus:border-black dark:focus:border-neutral-700 rounded-xl outline-none cursor-pointer transition-colors appearance-none" value={selectedShow} onChange={(e) => setSelectedShow(e.target.value)}>
-              {uniqueShows.map(show => <option key={show} value={show}>{show}</option>)}
-            </select>
-          </div>
-
-          <div className="mb-8">
-            <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-2">Gender</label>
-            <select className="w-full px-4 py-3 text-sm font-medium bg-neutral-100 dark:bg-[#111] border border-transparent focus:border-black dark:focus:border-neutral-700 rounded-xl outline-none cursor-pointer transition-colors appearance-none" value={selectedGender} onChange={(e) => setSelectedGender(e.target.value)}>
-              {uniqueGenders.map(gender => <option key={gender} value={gender}>{gender}</option>)}
-            </select>
-          </div>
-
+        <div className="flex-1 overflow-y-auto pb-6 px-1 flex flex-col">
           <div>
-            <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-2">Sort Methodology</label>
-            <div className="grid grid-cols-1 gap-2 bg-neutral-100 dark:bg-[#111] p-1.5 rounded-xl">
-              <button onClick={() => setSortBy('viewRate')} className={`px-4 py-2.5 text-sm font-bold rounded-lg transition-all ${sortBy === 'viewRate' ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Value (View Rate %)</button>
-              <button onClick={() => setSortBy('followers')} className={`px-4 py-2.5 text-sm font-bold rounded-lg transition-all ${sortBy === 'followers' ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Volume (Followers)</button>
+            <div className="flex items-center text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-6"><Filter className="w-3 h-3 mr-2" /> Global Filters</div>
+            
+            <div className="mb-6">
+              <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-2">Network Channel</label>
+              <select className="w-full px-4 py-3 text-sm font-medium bg-neutral-100 dark:bg-[#111] border border-transparent focus:border-black dark:focus:border-neutral-700 rounded-xl outline-none cursor-pointer transition-colors appearance-none" value={selectedChannel} onChange={(e) => setSelectedChannel(e.target.value)}>
+                {uniqueChannels.map(channel => <option key={channel} value={channel}>{channel}</option>)}
+              </select>
             </div>
+
+            <div className="mb-6">
+              <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-2">Show Name</label>
+              <select className="w-full px-4 py-3 text-sm font-medium bg-neutral-100 dark:bg-[#111] border border-transparent focus:border-black dark:focus:border-neutral-700 rounded-xl outline-none cursor-pointer transition-colors appearance-none" value={selectedShow} onChange={(e) => setSelectedShow(e.target.value)}>
+                {uniqueShows.map(show => <option key={show} value={show}>{show}</option>)}
+              </select>
+            </div>
+
+            <div className="mb-8">
+              <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-2">Gender</label>
+              <select className="w-full px-4 py-3 text-sm font-medium bg-neutral-100 dark:bg-[#111] border border-transparent focus:border-black dark:focus:border-neutral-700 rounded-xl outline-none cursor-pointer transition-colors appearance-none" value={selectedGender} onChange={(e) => setSelectedGender(e.target.value)}>
+                {uniqueGenders.map(gender => <option key={gender} value={gender}>{gender}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-2">Sort Methodology</label>
+              <div className="grid grid-cols-1 gap-2 bg-neutral-100 dark:bg-[#111] p-1.5 rounded-xl">
+                <button onClick={() => setSortBy('viewRate')} className={`px-4 py-2.5 text-sm font-bold rounded-lg transition-all ${sortBy === 'viewRate' ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Value (View Rate %)</button>
+                <button onClick={() => setSortBy('followers')} className={`px-4 py-2.5 text-sm font-bold rounded-lg transition-all ${sortBy === 'followers' ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Volume (Followers)</button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Share Setup Button Pinned to Bottom of Filters */}
+          <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-900">
+            <button 
+              onClick={copyShareLink}
+              className="w-full flex items-center justify-center px-4 py-3 text-sm font-bold bg-neutral-100 hover:bg-neutral-200 dark:bg-[#111] dark:hover:bg-[#222] text-neutral-700 dark:text-neutral-300 rounded-xl transition-all border border-transparent focus:border-black dark:focus:border-neutral-700"
+            >
+              {copied ? <Check className="w-4 h-4 mr-2 text-emerald-500" /> : <Share2 className="w-4 h-4 mr-2" />}
+              {copied ? 'Link Copied!' : 'Share Setup'}
+            </button>
+            <p className="text-[10px] text-center text-neutral-400 mt-3 px-2">Copies the current filters to your clipboard.</p>
           </div>
         </div>
       </aside>
@@ -139,7 +186,6 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
                 <p className="text-sm font-black leading-none mt-0.5">{processedActors.length}</p>
               </div>
               <div>
-                {/* REMOVED GREEN OVERLOAD FROM KPI HEADER */}
                 <p className="text-[9px] uppercase tracking-widest font-bold text-neutral-400">Total Audience</p>
                 <p className="text-sm font-black text-neutral-900 dark:text-white leading-none mt-0.5 tracking-tight">{totalFollowersFormatted}</p>
               </div>
@@ -179,7 +225,6 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
                           <th className="px-6 py-5">Gender</th>
                           <th className="px-6 py-5 text-right">Followers</th>
                           <th className="px-6 py-5 text-right">Avg Views</th>
-                          {/* NEUTRALIZED TABLE HEADER */}
                           <th className="px-6 py-5 text-right">View Rate</th>
                         </tr>
                       </thead>
@@ -200,7 +245,6 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
                             <td className="px-6 py-4 font-medium">{actor.gender}</td>
                             <td className="px-6 py-4 text-right font-bold text-black dark:text-white">{actor.metrics?.formattedFollowers || '-'}</td>
                             <td className="px-6 py-4 text-right font-medium">{actor.metrics?.avgReelViews || '-'}</td>
-                            {/* KEPT GREEN FOR THE METRIC VALUE ONLY */}
                             <td className={`px-6 py-4 text-right font-black ${getViewRateIntensity(actor.metrics?.viewRate)}`}>
                               {actor.metrics?.viewRate || '-'}
                             </td>
