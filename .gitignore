@@ -1,0 +1,16 @@
+# Google Credentials (SECURITY RISK)
+credentials.json
+
+# Persistent Instagram Login Data (SECURITY/PRIVACY RISK)
+ig_profile/
+
+# Python Virtual Environment (Too large, unnecessary to upload)
+venv/
+__pycache__/
+
+# Log Files
+tracker_history.log
+
+# Internal ZTV Company Data (Keep this local only)
+*.xlsx
+*.csv
