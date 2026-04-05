@@ -2,7 +2,7 @@ import { getDashboardData } from '@/lib/googleSheets';
 import DashboardClient from '@/components/DashboardClient';
 import { Suspense } from 'react';
 
-export const revalidate = 3600; 
+export const revalidate = 120; 
 
 export default async function Page() {
   const rawData = await getDashboardData();
