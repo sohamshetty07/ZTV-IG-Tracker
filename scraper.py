@@ -12,10 +12,8 @@ from playwright.async_api import async_playwright
 # ==========================================
 # 0. DYNAMIC HEADLESS & LOGGING SETUP
 # ==========================================
-# If '--cron' is passed in the terminal, it runs invisibly. Otherwise, it pops up.
 IS_CRON_JOB = '--cron' in sys.argv
 
-# Set up logging to write to both the terminal and a permanent text file
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(message)s',
@@ -28,61 +26,32 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ==========================================
-# 1. MATHEMATICS & FORMATTING
+# 1. FORMATTING & MATHS
 # ==========================================
 def format_for_presentation(count):
-    """Converts an exact integer into a clean decimal string (e.g., 1463541 -> '1.5M')."""
-    if not count:
-        return ""
+    if not count: return ""
     try:
         num = int(count)
         if num >= 1000000:
             formatted = f"{num / 1000000:.1f}"
-            if formatted.endswith('.0'):
-                formatted = formatted[:-2]
-            return f"{formatted}M"
+            return f"{formatted[:-2]}M" if formatted.endswith('.0') else f"{formatted}M"
         elif num >= 1000:
             formatted = f"{num / 1000:.1f}"
-            if formatted.endswith('.0'):
-                formatted = formatted[:-2]
-            return f"{formatted}K"
+            return f"{formatted[:-2]}K" if formatted.endswith('.0') else f"{formatted}K"
         else:
             return f"{num:,}"
     except ValueError:
         return str(count)
 
 def parse_to_raw_integer(formatted_str):
-    """Reverse-engineers strings like '1.5M' back into roughly 1500000 for delta maths."""
-    if not formatted_str or formatted_str == "-":
-        return 0
+    if not formatted_str or formatted_str == "-": return 0
     clean_str = str(formatted_str).upper().replace(',', '').strip()
     try:
-        if 'M' in clean_str:
-            return int(float(clean_str.replace('M', '')) * 1000000)
-        elif 'K' in clean_str:
-            return int(float(clean_str.replace('K', '')) * 1000)
-        else:
-            return int(clean_str)
+        if 'M' in clean_str: return int(float(clean_str.replace('M', '')) * 1000000)
+        elif 'K' in clean_str: return int(float(clean_str.replace('K', '')) * 1000)
+        else: return int(clean_str)
     except Exception:
         return 0
-
-def calculate_growth(old_str, new_raw_int):
-    """Calculates the difference between the old string and the new exact integer."""
-    if not old_str or new_raw_int == 0:
-        return "-"
-        
-    old_raw_int = parse_to_raw_integer(old_str)
-    if old_raw_int == 0:
-        return "-"
-        
-    diff = new_raw_int - old_raw_int
-    
-    if diff > 0:
-        return f"+{format_for_presentation(diff)}"
-    elif diff < 0:
-        return f"-{format_for_presentation(abs(diff))}"
-    else:
-        return "0"
 
 # ==========================================
 # 2. GOOGLE SHEETS AUTHENTICATION
@@ -92,7 +61,8 @@ CREDS = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", SCO
 client = gspread.authorize(CREDS)
 
 SPREADSHEET_NAME = "All Genre-Social Presence + Influencers" 
-sheet = client.open(SPREADSHEET_NAME).worksheet("IG_Tracker")
+roster_sheet = client.open(SPREADSHEET_NAME).worksheet("Master_Roster")
+log_sheet = client.open(SPREADSHEET_NAME).worksheet("Data_Log")
 
 # ==========================================
 # 3. MAIN ORCHESTRATOR
@@ -105,9 +75,8 @@ async def main():
         logger.error("Persistent profile folder 'ig_profile' not found! Run setup_auth.py first.")
         return
 
-    records = sheet.get_all_records()
-    # We now have 4 columns to update: Followers, Growth, Time, Status
-    batch_updates = [["", "", "", ""] for _ in range(len(records))]
+    records = roster_sheet.get_all_records()
+    rows_to_append = []
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     async with async_playwright() as p:
@@ -118,16 +87,20 @@ async def main():
         )
         
         page = context.pages[0]
-        logger.info(f"Processing {len(records)} profiles as a verified user...\n")
+        logger.info(f"Processing {len(records)} profiles from Master_Roster...\n")
         
         for index, row in enumerate(records):
-            influencer_name = row.get('Influencer Name', 'Unknown')
+            influencer_name = row.get('Real Name', 'Unknown')
             full_url = str(row.get("Instagram URL", ""))
-            old_followers = str(row.get("Followers Count", ""))
-            old_growth = str(row.get("Growth", "-")) # Fallback if column is empty
+            status_flag = str(row.get("Status", "")).strip().lower()
+
+            # Skip inactive talent immediately
+            if status_flag == 'inactive':
+                logger.info(f" -> Skipping {influencer_name} (Marked Inactive)")
+                continue
             
             if not full_url or "instagram" not in full_url.lower():
-                batch_updates[index] = [old_followers, old_growth, current_time, "Skipped: Invalid Link"]
+                rows_to_append.append([current_time, influencer_name, full_url, "", "", "", "", "", "", "Skipped: Invalid Link"])
                 continue
                 
             url_match = re.search(r'instagram\.com/([^/?#]+)', full_url)
@@ -141,9 +114,13 @@ async def main():
                     
                     exact_count = None
                     final_followers = ""
-                    growth_delta = "-"
+                    avg_likes_str = "-"
+                    avg_views_str = "-"
+                    avg_comments_str = "-"
+                    view_rate_percentage = "-"
                     status = "Blocked/Data not found"
                     
+                    # --- 1. GRAB FOLLOWERS ---
                     try:
                         locators = await page.locator('a[href$="/followers/"] span').all()
                         for loc in locators:
@@ -159,37 +136,107 @@ async def main():
                     except Exception:
                         pass
                     
+                    # --- 2. GRAB ENGAGEMENT ---
                     if exact_count is not None:
                         final_followers = format_for_presentation(exact_count)
-                        growth_delta = calculate_growth(old_followers, exact_count)
-                        status = "Success (Exact from UI)"
-                    
-                    if not final_followers:
-                        final_followers = old_followers
-                        growth_delta = old_growth
-                        status = "Failed (Kept Previous Data)"
+                        status = "Success (Followers Only)"
                         
+                        try:
+                            await page.evaluate("window.scrollBy(0, 500)")
+                            await page.wait_for_timeout(1500)
+                            
+                            post_selector = 'a[href*="/p/"], a[href*="/reel/"]'
+                            await page.wait_for_selector(post_selector, timeout=10000)
+                            posts = await page.locator(post_selector).all()
+                            
+                            valid_posts = []
+                            for post in posts:
+                                is_pinned = await post.locator('svg[aria-label*="Pinned"]').count() > 0
+                                if not is_pinned:
+                                    valid_posts.append(post)
+                                if len(valid_posts) == 12:
+                                    break
+                                    
+                            if valid_posts:
+                                photo_likes_sum, photo_count = 0, 0
+                                reel_views_sum, reel_count = 0, 0
+                                total_comments_sum = 0
+                                
+                                for post in valid_posts:
+                                    html_content = await post.inner_html()
+                                    is_reel = 'aria-label="Clip"' in html_content or 'aria-label="Reel"' in html_content or 'aria-label="Video"' in html_content
+                                    
+                                    await post.hover()
+                                    await page.wait_for_timeout(850) 
+                                    
+                                    stats_text = await post.inner_text()
+                                    numbers = re.findall(r'([\d.,]+[KM]?)', stats_text.upper())
+                                    
+                                    if len(numbers) >= 2:
+                                        first_stat = parse_to_raw_integer(numbers[0])
+                                        comments = parse_to_raw_integer(numbers[1])
+                                        
+                                        total_comments_sum += comments
+                                        
+                                        if is_reel:
+                                            reel_views_sum += first_stat
+                                            reel_count += 1
+                                        else:
+                                            photo_likes_sum += first_stat
+                                            photo_count += 1
+                                
+                                if (photo_count + reel_count) > 0:
+                                    avg_comments = total_comments_sum / (photo_count + reel_count)
+                                    avg_comments_str = format_for_presentation(avg_comments)
+                                    
+                                    if photo_count > 0:
+                                        avg_likes_str = format_for_presentation(photo_likes_sum / photo_count)
+                                        
+                                    if reel_count > 0:
+                                        avg_views = reel_views_sum / reel_count
+                                        avg_views_str = format_for_presentation(avg_views)
+                                        
+                                        raw_view_rate = (avg_views / exact_count) * 100
+                                        view_rate_percentage = f"{raw_view_rate:.2f}%"
+                                        
+                                    status = "Success (Followers + Dynamic Metrics)"
+                                    
+                        except Exception as e:
+                            logger.info(f"   [ER skipped for @{handle}: {str(e)}]")
+                            
                 except Exception:
-                    final_followers = old_followers
-                    growth_delta = old_growth
-                    status = "Timeout/Error (Kept Previous Data)"
-                    
-                batch_updates[index] = [final_followers, growth_delta, current_time, status]
-                logger.info(f" ✓ @{influencer_name} | Result: {final_followers} | Growth: {growth_delta} | {status}")
+                    status = "Timeout/Error"
+                
+                rows_to_append.append([
+                    current_time, influencer_name, full_url, 
+                    exact_count if exact_count else "", final_followers, 
+                    avg_likes_str, avg_views_str, avg_comments_str, view_rate_percentage, status
+                ])
+                logger.info(f" ✓ @{influencer_name} | Result: {final_followers} | Views: {avg_views_str} | View Rate: {view_rate_percentage} | {status}")
                 
                 if index < len(records) - 1:
                     sleep_time = random.uniform(3.0, 6.0)
                     await asyncio.sleep(sleep_time)
             else:
-                batch_updates[index] = [old_followers, old_growth, current_time, "Skipped: Invalid Link"]
+                rows_to_append.append([current_time, influencer_name, full_url, "", "", "", "", "", "", "Skipped: Invalid Link"])
                 
         await context.close()
         
-    logger.info("Pushing data to Google Sheets in one single payload...")
-    # Update range is now D to G to include the new Growth column
-    cell_range = f"D2:G{len(records) + 1}"
-    sheet.update(range_name=cell_range, values=batch_updates)
-    logger.info("Update complete! Tracker history has been logged.")
+    logger.info("Appending data to Google Sheets Data Log...")
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            log_sheet.append_rows(rows_to_append)
+            logger.info("Update complete! New historical data logged successfully.")
+            break 
+        except Exception as e:
+            logger.error(f"Google Sheets Upload Error (Attempt {attempt + 1}/{max_retries}): {str(e)}")
+            if attempt < max_retries - 1:
+                logger.info("Waiting 10 seconds for Wi-Fi/Network to stabilise before retrying...")
+                import time
+                time.sleep(10)
+            else:
+                logger.error("CRITICAL: Failed to append to Google Sheets.")
 
 if __name__ == "__main__":
     asyncio.run(main())
