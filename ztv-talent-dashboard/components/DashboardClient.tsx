@@ -253,7 +253,7 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </div> 
               )
             ) : (
               <div className="py-32 flex flex-col items-center justify-center text-neutral-400">
