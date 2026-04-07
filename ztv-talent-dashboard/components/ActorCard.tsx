@@ -16,7 +16,7 @@ export const getViewRateIntensity = (rateStr: string) => {
   if (rate < 50) return 'text-emerald-700 dark:text-emerald-400'; 
   if (rate < 100) return 'text-emerald-800 dark:text-emerald-300'; 
   
-  // Hyper-Viral: Adds a physical glow effect in Dark Mode
+  // Hyper-Viral: Adds a physical glowf effect in Dark Mode
   return 'text-emerald-950 dark:text-emerald-200 dark:drop-shadow-[0_0_8px_rgba(52,211,153,0.6)] font-black tracking-tighter'; 
 };
 
@@ -46,7 +46,7 @@ export default function ActorCard({ actor }: { actor: any }) {
             {actor.headshotUrl ? (
               <img src={actor.headshotUrl} alt={actor.realName} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-neutral-400 font-medium text-lg">{actor.realName.charAt(0)}</div>
+              <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black text-2xl">{actor.realName.charAt(0)}</div>
             )}
           </div>
           <span className={`mt-3 text-[10px] uppercase tracking-wider font-bold px-2.5 py-0.5 rounded-full ${tier.color}`}>
