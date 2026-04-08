@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import ActorCard from './ActorCard';
-import { Search, Moon, Sun, Filter, LayoutGrid, List, Download, PanelLeftClose, PanelLeftOpen, Share2, Check, Clock } from 'lucide-react';
+import { Search, Moon, Sun, Filter, LayoutGrid, List, Download, PanelLeftClose, PanelLeftOpen, Share2, Check, Clock, ChevronDown, ChevronUp, Users, Tv } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 export default function DashboardClient({ initialActors }: { initialActors: any[] }) {
@@ -10,16 +10,22 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Helper to parse comma-separated URL params into arrays
   const parseUrlArray = (param: string | null) => param ? param.split(',') : [];
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  // State is now arrays for multi-select (empty array means "All selected")
   const [selectedChannels, setSelectedChannels] = useState<string[]>(parseUrlArray(searchParams.get('channels')));
   const [selectedShows, setSelectedShows] = useState<string[]>(parseUrlArray(searchParams.get('shows')));
   const [selectedGenders, setSelectedGenders] = useState<string[]>(parseUrlArray(searchParams.get('genders')));
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'viewRate');
   
+  // New State: Isolate official network accounts from actors
+  const [showOfficialAccounts, setShowOfficialAccounts] = useState(searchParams.get('official') === 'true');
+
+  // Accordion UI State
+  const [isNetworkOpen, setIsNetworkOpen] = useState(true);
+  const [isShowOpen, setIsShowOpen] = useState(true);
+  const [isGenderOpen, setIsGenderOpen] = useState(true);
+
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -31,7 +37,7 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
     else root.classList.remove('dark');
   }, [isDarkMode]);
 
-  // Sync arrays to URL seamlessly
+  // Sync state to URL
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
@@ -39,22 +45,42 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
     if (selectedShows.length > 0) params.set('shows', selectedShows.join(','));
     if (selectedGenders.length > 0) params.set('genders', selectedGenders.join(','));
     if (sortBy !== 'viewRate') params.set('sort', sortBy);
+    if (showOfficialAccounts) params.set('official', 'true');
 
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [searchQuery, selectedChannels, selectedShows, selectedGenders, sortBy, pathname, router]);
+  }, [searchQuery, selectedChannels, selectedShows, selectedGenders, sortBy, showOfficialAccounts, pathname, router]);
 
-  const uniqueChannels = useMemo(() => Array.from(new Set(initialActors.map(a => a.channel).filter(c => c && c !== '-'))).sort(), [initialActors]);
-  const uniqueShows = useMemo(() => Array.from(new Set(initialActors.map(a => a.showName).filter(s => s && s !== '-'))).sort(), [initialActors]);
-  const uniqueGenders = useMemo(() => Array.from(new Set(initialActors.map(a => a.gender).filter(g => g && g !== '-'))).sort(), [initialActors]);
+  // STEP 1: Filter out the Official Channels based on the toggle
+  const baseActors = useMemo(() => {
+    return initialActors.filter(actor => {
+      // We assume if gender is 'Channel', 'channel', or '-', it is an official account, not a human actor.
+      const isOfficial = actor.gender?.toLowerCase() === 'channel' || actor.gender === '-';
+      return showOfficialAccounts ? true : !isOfficial;
+    });
+  }, [initialActors, showOfficialAccounts]);
+
+  // STEP 2: Generate dynamic filter lists (Cascading logic)
+  const uniqueChannels = useMemo(() => Array.from(new Set(baseActors.map(a => a.channel).filter(c => c && c !== '-'))).sort(), [baseActors]);
+  
+  const uniqueShows = useMemo(() => {
+    // If a channel is selected, ONLY show programs from that channel. Otherwise, show all.
+    const filteredForShows = selectedChannels.length > 0 
+      ? baseActors.filter(a => selectedChannels.includes(a.channel)) 
+      : baseActors;
+    return Array.from(new Set(filteredForShows.map(a => a.showName).filter(s => s && s !== '-'))).sort();
+  }, [baseActors, selectedChannels]);
+
+  // Hardcoded for clean UI, avoiding spreadsheet artifacts
+  const uniqueGenders = ['Male', 'Female']; 
 
   const toggleFilter = (item: string, currentList: string[], setList: React.Dispatch<React.SetStateAction<string[]>>) => {
     setList(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
 
+  // STEP 3: Final Data Processing
   const processedActors = useMemo(() => {
-    let filtered = initialActors.filter(actor => {
+    let filtered = baseActors.filter(actor => {
       const matchesSearch = actor.realName.toLowerCase().includes(searchQuery.toLowerCase()) || actor.handle.toLowerCase().includes(searchQuery.toLowerCase());
-      // If array is empty, it means no specific filters are applied, so include everything.
       const matchesChannel = selectedChannels.length === 0 || selectedChannels.includes(actor.channel);
       const matchesShow = selectedShows.length === 0 || selectedShows.includes(actor.showName);
       const matchesGender = selectedGenders.length === 0 || selectedGenders.includes(actor.gender);
@@ -69,7 +95,7 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
       const bRate = parseFloat(b.metrics?.viewRate?.replace('%', '') || '0');
       return sortBy === 'followers' ? bFoll - aFoll : bRate - aRate;
     });
-  }, [initialActors, searchQuery, selectedChannels, selectedShows, selectedGenders, sortBy]);
+  }, [baseActors, searchQuery, selectedChannels, selectedShows, selectedGenders, sortBy]);
 
   const totalFollowersFormatted = useMemo(() => {
     const sum = processedActors.reduce((acc, actor) => {
@@ -116,18 +142,42 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
         </div>
 
         <div className="flex-1 overflow-y-auto pb-6 px-1 flex flex-col custom-scrollbar">
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <span className="flex items-center text-[10px] font-bold text-neutral-400 uppercase tracking-widest"><Filter className="w-3 h-3 mr-2" /> Global Filters</span>
-              {(selectedChannels.length > 0 || selectedShows.length > 0 || selectedGenders.length > 0) && (
-                <button onClick={() => { setSelectedChannels([]); setSelectedShows([]); setSelectedGenders([]); }} className="text-[10px] font-bold text-blue-500 hover:text-blue-600 uppercase tracking-wider">Clear</button>
-              )}
+          
+          {/* ACCOUNT TYPE TOGGLE (Fixes the Data Pollution Issue) */}
+          <div className="mb-6 bg-neutral-100 dark:bg-[#111] rounded-xl p-1.5 flex items-center">
+            <button 
+              onClick={() => setShowOfficialAccounts(false)} 
+              className={`flex-1 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-all ${!showOfficialAccounts ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
+            >
+              <Users className="w-3.5 h-3.5 mr-1.5"/> Actors
+            </button>
+            <button 
+              onClick={() => setShowOfficialAccounts(true)} 
+              className={`flex-1 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-all ${showOfficialAccounts ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
+            >
+              <Tv className="w-3.5 h-3.5 mr-1.5"/> Official
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between mb-4">
+            <span className="flex items-center text-[10px] font-bold text-neutral-400 uppercase tracking-widest"><Filter className="w-3 h-3 mr-2" /> Filters</span>
+            {(selectedChannels.length > 0 || selectedShows.length > 0 || selectedGenders.length > 0) && (
+              <button onClick={() => { setSelectedChannels([]); setSelectedShows([]); setSelectedGenders([]); }} className="text-[10px] font-bold text-blue-500 hover:text-blue-600 uppercase tracking-wider">Reset All</button>
+            )}
+          </div>
+            
+          {/* ACCORDION 1: NETWORK CHANNEL */}
+          <div className="mb-4 border-b border-neutral-100 dark:border-neutral-900/50 pb-4">
+            <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsNetworkOpen(!isNetworkOpen)}>
+              <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Network Channel</label>
+              <div className="flex items-center space-x-3">
+                {selectedChannels.length > 0 && <span className="text-[9px] text-blue-500 font-bold uppercase" onClick={(e)=>{e.stopPropagation(); setSelectedChannels([]);}}>Clear</span>}
+                {isNetworkOpen ? <ChevronUp className="w-4 h-4 text-neutral-400"/> : <ChevronDown className="w-4 h-4 text-neutral-400"/>}
+              </div>
             </div>
             
-            {/* MULTI-SELECT CHECKBOX LISTS */}
-            <div className="mb-6">
-              <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-3">Network Channel</label>
-              <div className="max-h-32 overflow-y-auto space-y-2 pr-2">
+            {isNetworkOpen && (
+              <div className="mt-3 max-h-40 overflow-y-auto space-y-2.5 pr-2">
                 {uniqueChannels.map(channel => (
                   <label key={channel} className="flex items-center space-x-3 group cursor-pointer">
                     <input type="checkbox" checked={selectedChannels.includes(channel)} onChange={() => toggleFilter(channel, selectedChannels, setSelectedChannels)} className="w-4 h-4 rounded border-neutral-300 text-black dark:text-white focus:ring-black dark:focus:ring-white dark:border-neutral-700 dark:bg-neutral-900 cursor-pointer" />
@@ -135,23 +185,44 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
                   </label>
                 ))}
               </div>
-            </div>
+            )}
+          </div>
 
-            <div className="mb-6">
-              <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-3">Show Name</label>
-              <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
+          {/* ACCORDION 2: SHOW NAME */}
+          <div className="mb-4 border-b border-neutral-100 dark:border-neutral-900/50 pb-4">
+            <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsShowOpen(!isShowOpen)}>
+              <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Show Name</label>
+              <div className="flex items-center space-x-3">
+                {selectedShows.length > 0 && <span className="text-[9px] text-blue-500 font-bold uppercase" onClick={(e)=>{e.stopPropagation(); setSelectedShows([]);}}>Clear</span>}
+                {isShowOpen ? <ChevronUp className="w-4 h-4 text-neutral-400"/> : <ChevronDown className="w-4 h-4 text-neutral-400"/>}
+              </div>
+            </div>
+            
+            {isShowOpen && (
+              <div className="mt-3 max-h-40 overflow-y-auto space-y-2.5 pr-2">
                 {uniqueShows.map(show => (
                   <label key={show} className="flex items-center space-x-3 group cursor-pointer">
                     <input type="checkbox" checked={selectedShows.includes(show)} onChange={() => toggleFilter(show, selectedShows, setSelectedShows)} className="w-4 h-4 rounded border-neutral-300 text-black dark:text-white focus:ring-black dark:focus:ring-white dark:border-neutral-700 dark:bg-neutral-900 cursor-pointer" />
-                    <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors">{show}</span>
+                    <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors line-clamp-1" title={show}>{show}</span>
                   </label>
                 ))}
+                {uniqueShows.length === 0 && <div className="text-xs text-neutral-400 italic">No shows available.</div>}
+              </div>
+            )}
+          </div>
+
+          {/* ACCORDION 3: GENDER */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsGenderOpen(!isGenderOpen)}>
+              <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Gender</label>
+              <div className="flex items-center space-x-3">
+                {selectedGenders.length > 0 && <span className="text-[9px] text-blue-500 font-bold uppercase" onClick={(e)=>{e.stopPropagation(); setSelectedGenders([]);}}>Clear</span>}
+                {isGenderOpen ? <ChevronUp className="w-4 h-4 text-neutral-400"/> : <ChevronDown className="w-4 h-4 text-neutral-400"/>}
               </div>
             </div>
-
-            <div className="mb-8">
-              <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-3">Gender</label>
-              <div className="space-y-2 pr-2">
+            
+            {isGenderOpen && (
+              <div className="mt-3 space-y-2.5 pr-2">
                 {uniqueGenders.map(gender => (
                   <label key={gender} className="flex items-center space-x-3 group cursor-pointer">
                     <input type="checkbox" checked={selectedGenders.includes(gender)} onChange={() => toggleFilter(gender, selectedGenders, setSelectedGenders)} className="w-4 h-4 rounded border-neutral-300 text-black dark:text-white focus:ring-black dark:focus:ring-white dark:border-neutral-700 dark:bg-neutral-900 cursor-pointer" />
@@ -159,20 +230,19 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
                   </label>
                 ))}
               </div>
-            </div>
+            )}
+          </div>
 
-            <div>
-              <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-3">Sort Methodology</label>
-              <div className="grid grid-cols-1 gap-2 bg-neutral-100 dark:bg-[#111] p-1.5 rounded-xl border border-transparent dark:border-neutral-800">
-                <button onClick={() => setSortBy('viewRate')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${sortBy === 'viewRate' ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Value (View Rate %)</button>
-                <button onClick={() => setSortBy('followers')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${sortBy === 'followers' ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Volume (Followers)</button>
-              </div>
+          <div>
+            <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-3">Sort Methodology</label>
+            <div className="grid grid-cols-1 gap-2 bg-neutral-100 dark:bg-[#111] p-1.5 rounded-xl border border-transparent dark:border-neutral-800">
+              <button onClick={() => setSortBy('viewRate')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${sortBy === 'viewRate' ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Value (View Rate %)</button>
+              <button onClick={() => setSortBy('followers')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${sortBy === 'followers' ? 'bg-white dark:bg-[#222] text-black dark:text-white shadow-sm' : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'}`}>Volume (Followers)</button>
             </div>
           </div>
           
           <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-900 mt-auto">
             
-            {/* LAST UPDATED WIDGET */}
             <div className="mb-4 bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 rounded-xl p-3 flex items-center justify-between">
               <div className="flex items-center text-neutral-500 dark:text-neutral-400">
                 <Clock className="w-3.5 h-3.5 mr-2" />
@@ -214,7 +284,7 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
             
             <div className="hidden lg:flex items-center bg-neutral-50 dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-900 rounded-full px-4 py-1.5">
               <div className="text-right mr-3 pr-3 border-r border-neutral-200 dark:border-neutral-800">
-                <p className="text-[9px] uppercase tracking-widest font-bold text-neutral-400">Actors</p>
+                <p className="text-[9px] uppercase tracking-widest font-bold text-neutral-400">{showOfficialAccounts ? 'Accounts' : 'Actors'}</p>
                 <p className="text-sm font-bold leading-none mt-0.5">{processedActors.length}</p>
               </div>
               <div>
@@ -251,7 +321,7 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
                     <table className="w-full text-sm text-left text-neutral-600 dark:text-neutral-400">
                       <thead className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest bg-neutral-50 dark:bg-[#111] border-b border-neutral-200 dark:border-neutral-900 whitespace-nowrap">
                         <tr>
-                          <th className="px-6 py-5">Actor</th>
+                          <th className="px-6 py-5">Name</th>
                           <th className="px-6 py-5">Handle</th>
                           <th className="px-6 py-5">Show & Time</th>
                           <th className="px-6 py-5">Gender</th>
@@ -275,7 +345,7 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
                             </td>
                             <td className="px-6 py-4 font-medium"><a href={`https://instagram.com/${actor.handle}`} target="_blank" className="text-neutral-500 hover:text-blue-500 transition-colors">@{actor.handle}</a></td>
                             <td className="px-6 py-4 min-w-[150px]">
-                                <div className="font-bold text-black dark:text-white">{actor.showName}</div>
+                                <div className="font-bold text-black dark:text-white line-clamp-1">{actor.showName}</div>
                                 <div className="text-xs text-neutral-500 mt-0.5">{actor.timeSlot}</div>
                             </td>
                             <td className="px-6 py-4 font-medium">{actor.gender}</td>
@@ -293,7 +363,8 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
               )
             ) : (
               <div className="py-32 flex flex-col items-center justify-center text-neutral-400">
-                <p className="text-lg font-bold text-neutral-600 dark:text-neutral-500">No actors match these filters.</p>
+                <p className="text-lg font-bold text-neutral-600 dark:text-neutral-500">No {showOfficialAccounts ? 'accounts' : 'actors'} match these filters.</p>
+                <button onClick={() => { setSelectedChannels([]); setSelectedShows([]); setSelectedGenders([]); }} className="mt-4 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg text-sm font-bold">Reset Filters</button>
               </div>
             )}
           </div>
