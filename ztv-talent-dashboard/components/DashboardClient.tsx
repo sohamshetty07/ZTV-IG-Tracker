@@ -5,7 +5,7 @@ import ActorCard from './ActorCard';
 import { Search, Moon, Sun, Filter, LayoutGrid, List, Download, PanelLeftClose, PanelLeftOpen, Share2, Check, Clock, ChevronDown, ChevronUp, Users, Tv } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
-export default function DashboardClient({ initialActors }: { initialActors: any[] }) {
+export default function DashboardClient({ initialActors, lastSync }: { initialActors: any[], lastSync: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -249,7 +249,8 @@ export default function DashboardClient({ initialActors }: { initialActors: any[
                 <span className="text-xs font-bold uppercase tracking-wider">Last Sync</span>
               </div>
               <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">
-                {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                {/* Changed to use the real database timestamp */}
+                {lastSync}
               </span>
             </div>
 

@@ -68,3 +68,36 @@ export async function getDashboardData() {
   // Filter out inactive actors before sending to the frontend
   return combinedData.filter((actor) => actor.status.toLowerCase() !== 'inactive');
 }
+
+// Add this at the bottom of your googleSheets.ts file
+export async function getLastSyncDate() {
+  try {
+    const { google } = require('googleapis');
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+    
+    // Fetch only Column A from Data_Log
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID,
+      range: 'Data_Log!A:A',
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length === 0) return 'No sync data';
+
+    // Grab the very last row in the array
+    const lastEntry = rows[rows.length - 1][0];
+    
+    return lastEntry;
+  } catch (error) {
+    console.error('Error fetching last sync date:', error);
+    return 'Unknown';
+  }
+}
