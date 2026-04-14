@@ -24,10 +24,27 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
   // Workspace Switcher State
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
+  // 1. On initial load, check if they saved a preference previously
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      setIsDarkMode(true);
+    } else if (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      // Optional: Auto-detect their macOS/Windows system preference
+      setIsDarkMode(true);
+    }
+  }, []);
+
+  // 2. Whenever they click the moon/sun, update the page AND save it to storage
   useEffect(() => {
     const root = document.documentElement;
-    if (isDarkMode) root.classList.add('dark');
-    else root.classList.remove('dark');
+    if (isDarkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
   }, [isDarkMode]);
 
   // Dynamic Lists for Sidebar
@@ -121,7 +138,7 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
               <span className="text-white dark:text-black font-black text-xl leading-none">Z</span>
             </div>
             <div className="text-left flex-1">
-              <h1 className="text-sm font-bold tracking-tight leading-none flex items-center text-black dark:text-white">
+              <h1 className="text-lg font-black tracking-tight leading-none flex items-center text-black dark:text-white mt-0.5">
                 Network <ChevronDown className="w-3 h-3 ml-1.5 text-neutral-400" />
               </h1>
             </div>
