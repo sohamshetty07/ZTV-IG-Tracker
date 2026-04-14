@@ -31,3 +31,5 @@ node_modules/
 .next/
 out/
 build/
+
+scraper_engine/config.json
