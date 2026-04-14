@@ -264,13 +264,13 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
               <table className="w-full text-sm text-left text-neutral-600 dark:text-neutral-400">
                 <thead className="text-xs font-black text-black dark:text-white uppercase tracking-widest bg-neutral-50 dark:bg-[#111] border-b border-neutral-200 dark:border-neutral-900 whitespace-nowrap sticky top-0 z-20 shadow-sm">
                   <tr>
-                    <th className="px-6 py-4 min-w-[200px]">Channel Identity</th>
-                    <th className="px-6 py-4 min-w-[120px]">Segment</th>
-                    <th className="px-6 py-4 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors min-w-[100px]" onClick={() => setSortBy('fb')}>Facebook</th>
-                    <th className="px-6 py-4 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors min-w-[100px]" onClick={() => setSortBy('ig')}>Instagram</th>
-                    <th className="px-6 py-4 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors min-w-[100px]" onClick={() => setSortBy('yt')}>YouTube</th>
-                    <th className="px-6 py-4 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors bg-blue-50/50 dark:bg-blue-900/10 min-w-[120px]" onClick={() => setSortBy('total')}>Total Reach</th>
-                    <th className="px-6 py-4 min-w-[200px]">Share of Audience</th>
+                    <th className="px-6 py-5 min-w-[200px]">Channel Identity</th>
+                    <th className="px-6 py-5 min-w-[120px]">Segment</th>
+                    <th className="px-6 py-5 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors min-w-[100px]" onClick={() => setSortBy('fb')}>Facebook</th>
+                    <th className="px-6 py-5 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors min-w-[100px]" onClick={() => setSortBy('ig')}>Instagram</th>
+                    <th className="px-6 py-5 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors min-w-[100px]" onClick={() => setSortBy('yt')}>YouTube</th>
+                    <th className="px-6 py-5 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors bg-blue-50/50 dark:bg-blue-900/10 min-w-[120px]" onClick={() => setSortBy('total')}>Total Reach</th>
+                    <th className="px-6 py-4 text-center min-w-[200px]">Share of Audience</th>
                   </tr>
                 </thead>
                 <tbody>
