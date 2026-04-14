@@ -153,7 +153,6 @@ export async function getMacroData() {
   try {
     await doc.loadInfo(); 
 
-    // Connect to the specific Macro tabs
     const urlsSheet = doc.sheetsByTitle['Master_URLs'];
     const logSheet = doc.sheetsByTitle['Macro_Data_Log'];
 
@@ -162,17 +161,15 @@ export async function getMacroData() {
     const urlRows = await urlsSheet.getRows();
     const logRows = await logSheet.getRows();
 
-    // Create a map to hold the most recent data for each channel
     const latestMacroMetrics = new Map();
 
-    // Loop through the log. Because it goes top to bottom, the last entry for a channel is the freshest.
+    // 1. Fetch latest metrics (lowercased for safe matching)
     logRows.forEach((row) => {
-      const channelName = row.get('Channel Name');
+      const channelName = (row.get('Channel Name') || '').trim();
       if (channelName) {
-        // Normalise the strings to numbers for maths later
         const parseMetric = (val: string) => parseFloat(val?.replace(/,/g, '') || '0') || 0;
         
-        latestMacroMetrics.set(channelName, {
+        latestMacroMetrics.set(channelName.toLowerCase(), {
           fb: parseMetric(row.get('FB Followers')),
           ig: parseMetric(row.get('IG Followers')),
           yt: parseMetric(row.get('YT Subscribers')),
@@ -181,32 +178,90 @@ export async function getMacroData() {
       }
     });
 
-    // Merge the URL metadata with the freshest metrics
-    const macroData = urlRows.map((row) => {
-      const channelName = row.get('Channel Name');
-      const metrics = latestMacroMetrics.get(channelName) || { fb: 0, ig: 0, yt: 0, lastUpdated: '-' };
-      
-      // Calculate Total Footprint automatically
-      const totalAudience = metrics.fb + metrics.ig + metrics.yt;
+    const uniqueChannels = new Map();
 
-      return {
-        id: channelName,
-        channelName: channelName,
-        category: row.get('Category') || 'Uncategorised',
-        status: row.get('Status') || 'Active',
-        networkType: 'Zee', // FUTURE-PROOFING: When competitors are added, they will be tagged 'Competitor' here
-        metrics: {
-          ...metrics,
-          total: totalAudience
-        }
-      };
+    // 2. Map URLs, but strictly DEDUPLICATE and clean the data
+    urlRows.forEach((row) => {
+      const channelName = (row.get('Channel Name') || '').trim();
+      const status = (row.get('Status') || '').trim().toLowerCase();
+      
+      // Skip empty rows or inactive channels
+      if (!channelName || status !== 'active') return;
+
+      const normalizedName = channelName.toLowerCase();
+
+      // DEDUPLICATION: If we haven't seen this channel yet, process it.
+      if (!uniqueChannels.has(normalizedName)) {
+        const metrics = latestMacroMetrics.get(normalizedName) || { fb: 0, ig: 0, yt: 0, lastUpdated: '-' };
+        const totalAudience = metrics.fb + metrics.ig + metrics.yt;
+
+        // CLEANUP: Trim invisible spaces. Default to 'Uncategorised' if blank.
+        let category = (row.get('Category') || '').trim();
+        if (!category) category = 'Uncategorised';
+
+        uniqueChannels.set(normalizedName, {
+          id: channelName,
+          channelName: channelName,
+          category: category,
+          status: 'Active',
+          networkType: 'Zee',
+          metrics: {
+            ...metrics,
+            total: totalAudience
+          }
+        });
+      }
     });
 
-    // Filter out inactive channels
-    return macroData.filter(channel => channel.status.toLowerCase() === 'active');
+    return Array.from(uniqueChannels.values());
 
   } catch (error) {
     console.error('Error fetching Macro Data:', error);
     return [];
+  }
+}
+
+// 6. Macro Dashboard Last Sync Date
+export async function getMacroLastSyncDate() {
+  try {
+    const { google } = require('googleapis');
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+    
+    // We fetch a small grid (A1 to B3) to safely locate the date
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID,
+      range: 'Macro_Dashboard!A1:B3', 
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length === 0) return 'Unknown';
+
+    // 1. Smart Search: Look for the "Last Updated:" label in Column A
+    for (const row of rows) {
+      if (row[0] && row[0].toString().toLowerCase().includes('last updated')) {
+        // If we find the label, return the value directly next to it in Column B
+        if (row[1] && row[1].trim() !== '') return row[1].trim();
+      }
+    }
+
+    // 2. Fallback: If the label changes, just check cell B2 (Row 2, Column B)
+    if (rows[1] && rows[1][1] && rows[1][1].trim() !== '') return rows[1][1].trim();
+    
+    // 3. Final Fallback: Check cell B1
+    if (rows[0] && rows[0][1] && rows[0][1].trim() !== '') return rows[0][1].trim();
+
+    return 'Unknown';
+
+  } catch (error) {
+    console.error('Error fetching Macro Last Sync:', error);
+    return 'Unknown';
   }
 }
