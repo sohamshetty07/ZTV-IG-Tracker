@@ -83,21 +83,64 @@ export async function getLastSyncDate() {
 
     const sheets = google.sheets({ version: 'v4', auth });
     
-    // Fetch only Column A from Data_Log
+    // We fetch Column A. If this tab name is even slightly wrong, it throws an API error.
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID,
-      range: 'Data_Log!A:A',
+      range: 'Data_Log!A:A', 
     });
 
     const rows = response.data.values;
-    if (!rows || rows.length === 0) return 'No sync data';
+    if (!rows || rows.length === 0) return 'Empty Sheet';
 
-    // Grab the very last row in the array
-    const lastEntry = rows[rows.length - 1][0];
-    
-    return lastEntry;
-  } catch (error) {
-    console.error('Error fetching last sync date:', error);
-    return 'Unknown';
+    // Loop backwards to find the actual last row
+    let lastEntry = '';
+    for (let i = rows.length - 1; i >= 0; i--) {
+      if (rows[i] && rows[i][0] && rows[i][0].trim() !== '') {
+        lastEntry = rows[i][0].trim();
+        break;
+      }
+    }
+
+    if (!lastEntry) return 'No Text Found';
+
+    // === DIAGNOSTIC PARSING ===
+    try {
+      const dateStringOnly = lastEntry.split(' ')[0]; 
+      const parts = dateStringOnly.split('-');
+      
+      // IF the format is weird, DO NOT crash. Just print the raw text to the screen!
+      if (parts.length !== 3) return lastEntry.substring(0, 16);
+      
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const monthName = monthNames[month - 1];
+
+      const getOrdinalSuffix = (n: number) => {
+        if (n > 3 && n < 21) return 'th';
+        switch (n % 10) {
+          case 1:  return "st";
+          case 2:  return "nd";
+          case 3:  return "rd";
+          default: return "th";
+        }
+      };
+
+      // Failsafe: if the numbers are broken, return raw text
+      if (isNaN(day) || !monthName || isNaN(year)) return lastEntry.substring(0, 16);
+
+      return `${day}${getOrdinalSuffix(day)} ${monthName} ${year}`;
+
+    } catch (parseError) {
+      // If our Javascript math fails, show exactly what was in the cell
+      return lastEntry.substring(0, 16); 
+    }
+
+  } catch (error: any) {
+    // THE SMOKING GUN: If the Google API fails, print the exact error message to the UI
+    console.error('API Error:', error);
+    return (error.message || 'API Error').substring(0, 18);
   }
 }
