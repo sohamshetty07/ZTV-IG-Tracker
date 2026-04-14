@@ -2,8 +2,9 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import ActorCard from './ActorCard';
-import { Search, Moon, Sun, Filter, LayoutGrid, List, Download, PanelLeftClose, PanelLeftOpen, Share2, Check, Clock, ChevronDown, ChevronUp, Users, Tv, ExternalLink } from 'lucide-react';
+import { Search, Moon, Sun, Filter, LayoutGrid, List, Download, PanelLeftClose, PanelLeftOpen, Share2, Check, Clock, ChevronDown, ChevronUp, Users, Tv, ExternalLink, Globe } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import * as XLSX from 'xlsx';
 
 export default function DashboardClient({ initialActors, lastSync }: { initialActors: any[], lastSync: string }) {
   const router = useRouter();
@@ -18,13 +19,16 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
   const [selectedGenders, setSelectedGenders] = useState<string[]>(parseUrlArray(searchParams.get('genders')));
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'viewRate');
   
-  // New State: Isolate official network accounts from actors
+  // Isolate official network accounts from actors
   const [showOfficialAccounts, setShowOfficialAccounts] = useState(searchParams.get('official') === 'true');
 
   // Accordion UI State
   const [isNetworkOpen, setIsNetworkOpen] = useState(true);
   const [isShowOpen, setIsShowOpen] = useState(true);
   const [isGenderOpen, setIsGenderOpen] = useState(true);
+
+  // Workspace Switcher State
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -53,7 +57,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
   // STEP 1: Filter out the Official Channels based on the toggle
   const baseActors = useMemo(() => {
     return initialActors.filter(actor => {
-      // We assume if gender is 'Channel', 'channel', or '-', it is an official account, not a human actor.
       const isOfficial = actor.gender?.toLowerCase() === 'channel' || actor.gender === '-';
       return showOfficialAccounts ? true : !isOfficial;
     });
@@ -63,14 +66,12 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
   const uniqueChannels = useMemo(() => Array.from(new Set(baseActors.map(a => a.channel).filter(c => c && c !== '-'))).sort(), [baseActors]);
   
   const uniqueShows = useMemo(() => {
-    // If a channel is selected, ONLY show programs from that channel. Otherwise, show all.
     const filteredForShows = selectedChannels.length > 0 
       ? baseActors.filter(a => selectedChannels.includes(a.channel)) 
       : baseActors;
     return Array.from(new Set(filteredForShows.map(a => a.showName).filter(s => s && s !== '-'))).sort();
   }, [baseActors, selectedChannels]);
 
-  // Hardcoded for clean UI, avoiding spreadsheet artifacts
   const uniqueGenders = ['Male', 'Female']; 
 
   const toggleFilter = (item: string, currentList: string[], setList: React.Dispatch<React.SetStateAction<string[]>>) => {
@@ -106,18 +107,39 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
     return (sum / 1000000).toFixed(2) + ' M';
   }, [processedActors]);
 
-  const exportToCSV = () => {
-    const headers = ["Real Name", "Instagram Handle", "Channel", "Show Name", "Time Slot", "Gender", "Followers", "Avg Photo Likes", "Avg Reel Views", "Avg Comments", "View Rate %"];
-    const rows = processedActors.map(a => [
-      `"${a.realName}"`, `"@${a.handle}"`, `"${a.channel}"`, `"${a.showName}"`, `"${a.timeSlot}"`, `"${a.gender}"`, 
-      parseInt(String(a.metrics?.exactFollowers || '0').replace(/,/g, ''), 10) || 0, `"${a.metrics?.avgPhotoLikes || '-'}"`, `"${a.metrics?.avgReelViews || '-'}"`, `"${a.metrics?.avgComments || '-'}"`, `"${a.metrics?.viewRate || '-'}"`
-    ]);
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `Z_Talent_Export_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
+  // UPGRADED ENTERPRISE EXPORT ENGINE (Excel .xlsx format)
+  const exportToExcel = () => {
+    const dataRows = processedActors.map(a => ({
+      "Real Name": a.realName,
+      "Instagram Handle": `@${a.handle}`,
+      "Channel": a.channel,
+      "Show Name": a.showName,
+      "Time Slot": a.timeSlot,
+      "Gender": a.gender,
+      "Followers": parseInt(String(a.metrics?.exactFollowers || '0').replace(/,/g, ''), 10) || 0,
+      "Avg Photo Likes": a.metrics?.avgPhotoLikes || '-',
+      "Avg Reel Views": a.metrics?.avgReelViews || '-',
+      "Avg Comments": a.metrics?.avgComments || '-',
+      "View Rate %": a.metrics?.viewRate || '-'
+    }));
+    const dataSheet = XLSX.utils.json_to_sheet(dataRows);
+
+    const metadataRows = [
+      { "Configuration": "Export Date", "Value": new Date().toLocaleString('en-GB') },
+      { "Configuration": "Data Last Synchronised", "Value": lastSync },
+      { "Configuration": "Account Type", "Value": showOfficialAccounts ? "Official Network Accounts" : "Actors Only" },
+      { "Configuration": "Search Query Applied", "Value": searchQuery || "None" },
+      { "Configuration": "Networks Filtered", "Value": selectedChannels.length > 0 ? selectedChannels.join(', ') : "All Networks" },
+      { "Configuration": "Shows Filtered", "Value": selectedShows.length > 0 ? selectedShows.join(', ') : "All Shows" },
+      { "Configuration": "Genders Filtered", "Value": selectedGenders.length > 0 ? selectedGenders.join(', ') : "All Genders" }
+    ];
+    const metaSheet = XLSX.utils.json_to_sheet(metadataRows);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, dataSheet, "Talent Data");
+    XLSX.utils.book_append_sheet(wb, metaSheet, "Report Metadata");
+
+    XLSX.writeFile(wb, `Z_Talent_Intelligence_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const copyShareLink = async () => {
@@ -133,12 +155,42 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
   return (
     <div className="flex h-screen overflow-hidden font-sans bg-neutral-50 dark:bg-black text-neutral-900 dark:text-neutral-100 transition-colors duration-200">
       
-      <aside className={`${isSidebarOpen ? 'w-[300px] px-6' : 'w-0 px-0 opacity-0'} transition-all duration-300 bg-white dark:bg-[#0a0a0a] border-r border-neutral-200 dark:border-neutral-900 flex flex-col z-20 shadow-sm overflow-hidden whitespace-nowrap shrink-0`}>
-        <div className="h-20 flex items-center border-b border-neutral-100 dark:border-neutral-900 mb-6 shrink-0">
-          <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center mr-3">
-            <span className="text-white dark:text-black font-black text-xl leading-none">Z</span>
-          </div>
-          <h1 className="text-xl font-bold tracking-tight">Talent Data</h1>
+      <aside className={`${isSidebarOpen ? 'w-[280px] px-6' : 'w-0 px-0 opacity-0'} transition-all duration-300 bg-white dark:bg-[#0a0a0a] border-r border-neutral-200 dark:border-neutral-900 flex flex-col z-20 shadow-sm overflow-hidden whitespace-nowrap shrink-0`}>
+        
+        {/* WORKSPACE SWITCHER */}
+        <div className="relative h-20 flex items-center border-b border-neutral-100 dark:border-neutral-900 mb-6 shrink-0 px-2 z-50">
+          <button 
+            onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+            className="flex items-center w-full hover:bg-neutral-100 dark:hover:bg-neutral-900 p-2 rounded-xl transition-colors"
+          >
+            <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center mr-3 shrink-0">
+              <span className="text-white dark:text-black font-black text-xl leading-none">Z</span>
+            </div>
+            <div className="text-left flex-1">
+              <h1 className="text-sm font-bold tracking-tight leading-none flex items-center text-black dark:text-white">
+                Talent <ChevronDown className="w-3 h-3 ml-1.5 text-neutral-400" />
+              </h1>
+            </div>
+          </button>
+
+          {/* DROPDOWN MENU */}
+          {isSwitcherOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsSwitcherOpen(false)}></div>
+              <div className="absolute top-16 left-4 w-56 bg-white dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest px-4 py-2">Workspaces</p>
+                
+                <button onClick={() => { setIsSwitcherOpen(false); }} className="w-full flex items-center px-4 py-2.5 text-sm font-medium bg-neutral-50 dark:bg-[#222] text-black dark:text-white transition-colors">
+                  <Users className="w-4 h-4 mr-3 text-neutral-500" /> Talent
+                  <Check className="w-3 h-3 ml-auto text-black dark:text-white"/>
+                </button>
+                
+                <button onClick={() => { router.push('/network'); setIsSwitcherOpen(false); }} className="w-full flex items-center px-4 py-2.5 text-sm font-medium hover:bg-neutral-50 dark:hover:bg-neutral-900 text-neutral-600 dark:text-neutral-400 transition-colors">
+                  <Globe className="w-4 h-4 mr-3 text-neutral-500" /> Network
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto pb-6 px-1 flex flex-col custom-scrollbar">
@@ -161,10 +213,11 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
           <div className="flex items-center justify-between mb-4">
             <span className="flex items-center text-[10px] font-bold text-neutral-400 uppercase tracking-widest"><Filter className="w-3 h-3 mr-2" /> Filters</span>
             {(selectedChannels.length > 0 || selectedShows.length > 0 || selectedGenders.length > 0) && (
-              <button onClick={() => { setSelectedChannels([]); setSelectedShows([]); setSelectedGenders([]); }} className="text-[10px] font-bold text-blue-500 hover:text-blue-600 uppercase tracking-wider">Reset All</button>
+              <button onClick={() => { setSelectedChannels([]); setSelectedShows([]); setSelectedGenders([]); }} className="text-[10px] font-bold text-blue-500 hover:text-blue-600 uppercase tracking-wider">Reset</button>
             )}
           </div>
             
+          {/* ACCORDION 1: NETWORK CHANNEL */}
           <div className="mb-4 border-b border-neutral-100 dark:border-neutral-900/50 pb-4">
             <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsNetworkOpen(!isNetworkOpen)}>
               <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Network Channel</label>
@@ -185,6 +238,7 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
             )}
           </div>
 
+          {/* ACCORDION 2: SHOW NAME */}
           <div className="mb-4 border-b border-neutral-100 dark:border-neutral-900/50 pb-4">
             <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsShowOpen(!isShowOpen)}>
               <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Show Name</label>
@@ -206,6 +260,7 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
             )}
           </div>
 
+          {/* ACCORDION 3: GENDER */}
           <div className="mb-8">
             <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsGenderOpen(!isGenderOpen)}>
               <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Gender</label>
@@ -285,7 +340,7 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
               <button onClick={() => setViewMode('table')} className={`p-2 rounded-full transition-all ${viewMode === 'table' ? 'bg-white dark:bg-[#222] shadow-sm text-black dark:text-white' : 'text-neutral-500 hover:text-black dark:hover:text-white'}`}><List className="w-4 h-4"/></button>
             </div>
 
-            <button onClick={exportToCSV} className="hidden sm:flex items-center px-4 py-2 text-sm font-bold bg-black dark:bg-white text-white dark:text-black rounded-full hover:scale-105 transition-transform">
+            <button onClick={exportToExcel} className="hidden sm:flex items-center px-4 py-2 text-sm font-bold bg-black dark:bg-white text-white dark:text-black rounded-full hover:scale-105 transition-transform shadow-sm">
               <Download className="w-4 h-4 mr-2"/> Export
             </button>
 
@@ -299,14 +354,14 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
           <div className="max-w-[1600px] w-full mx-auto flex-1 flex flex-col min-h-0">
             {processedActors.length > 0 ? (
               viewMode === 'grid' ? (
-                // GRID VIEW: Handled its own scrolling container to utilize the full height
+                // GRID VIEW
                 <div className="overflow-y-auto custom-scrollbar flex-1 pb-10 pr-2">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {processedActors.map((actor, i) => <ActorCard key={i} actor={actor} />)}
                   </div>
                 </div>
               ) : (
-                // TABLE VIEW: Snaps to the exact remaining height of the viewport
+                // TABLE VIEW
                 <div className="bg-white dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-900 rounded-2xl shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden relative">
                   <div className="overflow-auto custom-scrollbar flex-1">
                     <table className="w-full text-sm text-left text-neutral-600 dark:text-neutral-400">

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Moon, Sun, ArrowLeft, Clock, Filter, PanelLeftClose, PanelLeftOpen, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { Search, Moon, Sun, Clock, Filter, PanelLeftClose, PanelLeftOpen, ChevronDown, ChevronUp, Download, Globe, Users, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as XLSX from 'xlsx';
 
@@ -20,6 +20,9 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
   // Accordion State
   const [isCategoryOpen, setIsCategoryOpen] = useState(true);
   const [isChannelOpen, setIsChannelOpen] = useState(true);
+
+  // Workspace Switcher State
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -105,18 +108,43 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
   return (
     <div className="flex h-screen overflow-hidden font-sans bg-neutral-50 dark:bg-black text-neutral-900 dark:text-neutral-100 transition-colors duration-200">
       
-      {/* SIDEBAR (Matches Talent Dashboard) */}
+      {/* SIDEBAR */}
       <aside className={`${isSidebarOpen ? 'w-[280px] px-6' : 'w-0 px-0 opacity-0'} transition-all duration-300 bg-white dark:bg-[#0a0a0a] border-r border-neutral-200 dark:border-neutral-900 flex flex-col z-20 shadow-sm overflow-hidden whitespace-nowrap shrink-0`}>
-        <div className="h-20 flex items-center border-b border-neutral-100 dark:border-neutral-900 mb-6 shrink-0">
-          <button onClick={() => router.push('/')} className="mr-3 p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 text-neutral-500 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
+        
+        {/* WORKSPACE SWITCHER */}
+        <div className="relative h-20 flex items-center border-b border-neutral-100 dark:border-neutral-900 mb-6 shrink-0 px-2 z-50">
+          <button 
+            onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+            className="flex items-center w-full hover:bg-neutral-100 dark:hover:bg-neutral-900 p-2 rounded-xl transition-colors"
+          >
+            <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center mr-3 shrink-0">
+              <span className="text-white dark:text-black font-black text-xl leading-none">Z</span>
+            </div>
+            <div className="text-left flex-1">
+              <h1 className="text-sm font-bold tracking-tight leading-none flex items-center text-black dark:text-white">
+                Network <ChevronDown className="w-3 h-3 ml-1.5 text-neutral-400" />
+              </h1>
+            </div>
           </button>
-          <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center mr-3">
-            <span className="text-white dark:text-black font-black text-xl leading-none">Z</span>
-          </div>
-          <div>
-            <h1 className="text-base font-bold tracking-tight leading-none">Network Intel</h1>
-          </div>
+
+          {/* DROPDOWN MENU */}
+          {isSwitcherOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsSwitcherOpen(false)}></div>
+              <div className="absolute top-16 left-4 w-56 bg-white dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest px-4 py-2">Workspaces</p>
+                
+                <button onClick={() => { router.push('/'); setIsSwitcherOpen(false); }} className="w-full flex items-center px-4 py-2.5 text-sm font-medium hover:bg-neutral-50 dark:hover:bg-neutral-900 text-neutral-600 dark:text-neutral-400 transition-colors">
+                  <Users className="w-4 h-4 mr-3 text-neutral-500" /> Talent
+                </button>
+                
+                <button onClick={() => { setIsSwitcherOpen(false); }} className="w-full flex items-center px-4 py-2.5 text-sm font-medium bg-neutral-50 dark:bg-[#222] text-black dark:text-white transition-colors">
+                  <Globe className="w-4 h-4 mr-3 text-neutral-500" /> Network
+                  <Check className="w-3 h-3 ml-auto text-black dark:text-white"/>
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto pb-6 flex flex-col custom-scrollbar pr-2">
@@ -201,7 +229,7 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
               </div>
             </div>
 
-            {/* NEW: Export Button */}
+            {/* Export Button */}
             <button onClick={exportToExcel} className="hidden sm:flex items-center px-4 py-2 text-sm font-bold bg-black dark:bg-white text-white dark:text-black rounded-full hover:scale-105 transition-transform shadow-sm">
               <Download className="w-4 h-4 mr-2"/> Export
             </button>
