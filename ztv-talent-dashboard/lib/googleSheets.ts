@@ -39,7 +39,10 @@ export async function getDashboardData() {
       latestMetrics.set(handle, {
         exactFollowers: row.get('Exact Followers') || 0,
         formattedFollowers: row.get('Formatted Followers') || '-',
+        // NEW: Pulling the missing metrics directly from the column headers
+        avgPhotoLikes: row.get('Avg Photo Likes') || '-',
         avgReelViews: row.get('Avg Reel Views') || '-',
+        avgComments: row.get('Avg Comments') || '-',
         viewRate: row.get('Reel View Rate %') || '-',
         lastUpdated: row.get('Date') || '-',
       });
@@ -69,7 +72,7 @@ export async function getDashboardData() {
   return combinedData.filter((actor) => actor.status.toLowerCase() !== 'inactive');
 }
 
-// Add this at the bottom of your googleSheets.ts file
+// 4. Last Sync Date Function
 export async function getLastSyncDate() {
   try {
     const { google } = require('googleapis');

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import ActorCard from './ActorCard';
-import { Search, Moon, Sun, Filter, LayoutGrid, List, Download, PanelLeftClose, PanelLeftOpen, Share2, Check, Clock, ChevronDown, ChevronUp, Users, Tv } from 'lucide-react';
+import { Search, Moon, Sun, Filter, LayoutGrid, List, Download, PanelLeftClose, PanelLeftOpen, Share2, Check, Clock, ChevronDown, ChevronUp, Users, Tv, ExternalLink } from 'lucide-react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 export default function DashboardClient({ initialActors, lastSync }: { initialActors: any[], lastSync: string }) {
@@ -107,10 +107,10 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
   }, [processedActors]);
 
   const exportToCSV = () => {
-    const headers = ["Real Name", "Instagram Handle", "Channel", "Show Name", "Time Slot", "Gender", "Followers", "Avg Reel Views", "View Rate %"];
+    const headers = ["Real Name", "Instagram Handle", "Channel", "Show Name", "Time Slot", "Gender", "Followers", "Avg Photo Likes", "Avg Reel Views", "Avg Comments", "View Rate %"];
     const rows = processedActors.map(a => [
       `"${a.realName}"`, `"@${a.handle}"`, `"${a.channel}"`, `"${a.showName}"`, `"${a.timeSlot}"`, `"${a.gender}"`, 
-      parseInt(String(a.metrics?.exactFollowers || '0').replace(/,/g, ''), 10) || 0, `"${a.metrics?.avgReelViews || '-'}"`, `"${a.metrics?.viewRate || '-'}"`
+      parseInt(String(a.metrics?.exactFollowers || '0').replace(/,/g, ''), 10) || 0, `"${a.metrics?.avgPhotoLikes || '-'}"`, `"${a.metrics?.avgReelViews || '-'}"`, `"${a.metrics?.avgComments || '-'}"`, `"${a.metrics?.viewRate || '-'}"`
     ]);
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -143,7 +143,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
 
         <div className="flex-1 overflow-y-auto pb-6 px-1 flex flex-col custom-scrollbar">
           
-          {/* ACCOUNT TYPE TOGGLE (Fixes the Data Pollution Issue) */}
           <div className="mb-6 bg-neutral-100 dark:bg-[#111] rounded-xl p-1.5 flex items-center">
             <button 
               onClick={() => setShowOfficialAccounts(false)} 
@@ -166,7 +165,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
             )}
           </div>
             
-          {/* ACCORDION 1: NETWORK CHANNEL */}
           <div className="mb-4 border-b border-neutral-100 dark:border-neutral-900/50 pb-4">
             <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsNetworkOpen(!isNetworkOpen)}>
               <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Network Channel</label>
@@ -175,7 +173,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
                 {isNetworkOpen ? <ChevronUp className="w-4 h-4 text-neutral-400"/> : <ChevronDown className="w-4 h-4 text-neutral-400"/>}
               </div>
             </div>
-            
             {isNetworkOpen && (
               <div className="mt-3 max-h-40 overflow-y-auto space-y-2.5 pr-2">
                 {uniqueChannels.map(channel => (
@@ -188,7 +185,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
             )}
           </div>
 
-          {/* ACCORDION 2: SHOW NAME */}
           <div className="mb-4 border-b border-neutral-100 dark:border-neutral-900/50 pb-4">
             <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsShowOpen(!isShowOpen)}>
               <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Show Name</label>
@@ -197,7 +193,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
                 {isShowOpen ? <ChevronUp className="w-4 h-4 text-neutral-400"/> : <ChevronDown className="w-4 h-4 text-neutral-400"/>}
               </div>
             </div>
-            
             {isShowOpen && (
               <div className="mt-3 max-h-40 overflow-y-auto space-y-2.5 pr-2">
                 {uniqueShows.map(show => (
@@ -211,7 +206,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
             )}
           </div>
 
-          {/* ACCORDION 3: GENDER */}
           <div className="mb-8">
             <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsGenderOpen(!isGenderOpen)}>
               <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Gender</label>
@@ -220,7 +214,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
                 {isGenderOpen ? <ChevronUp className="w-4 h-4 text-neutral-400"/> : <ChevronDown className="w-4 h-4 text-neutral-400"/>}
               </div>
             </div>
-            
             {isGenderOpen && (
               <div className="mt-3 space-y-2.5 pr-2">
                 {uniqueGenders.map(gender => (
@@ -242,16 +235,12 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
           </div>
           
           <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-900 mt-auto">
-            
             <div className="mb-4 bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 rounded-xl p-3 flex items-center justify-between">
               <div className="flex items-center text-neutral-500 dark:text-neutral-400">
                 <Clock className="w-3.5 h-3.5 mr-2" />
                 <span className="text-xs font-bold uppercase tracking-wider">Last Sync</span>
               </div>
-              <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">
-                {/* Changed to use the real database timestamp */}
-                {lastSync}
-              </span>
+              <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">{lastSync}</span>
             </div>
 
             <button 
@@ -269,12 +258,10 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         
         <header className="h-20 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-neutral-200/50 dark:border-neutral-900 flex items-center justify-between px-8 z-10 shrink-0 transition-colors duration-200">
-          
           <div className="flex items-center w-full max-w-xl">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 mr-4 text-neutral-400 hover:text-black dark:hover:text-white transition-colors">
               {isSidebarOpen ? <PanelLeftClose className="w-5 h-5"/> : <PanelLeftOpen className="w-5 h-5"/>}
             </button>
-            
             <div className="relative w-full">
               <Search className="w-4 h-4 absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400" />
               <input type="text" placeholder="Search talent..." className="w-full pl-11 pr-4 py-3 text-sm font-medium bg-neutral-100 dark:bg-[#111] placeholder-neutral-500 border border-transparent focus:bg-white dark:focus:bg-[#1a1a1a] focus:border-neutral-300 dark:focus:border-neutral-700 rounded-full outline-none transition-all" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}/>
@@ -282,7 +269,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
           </div>
 
           <div className="flex items-center space-x-6">
-            
             <div className="hidden lg:flex items-center bg-neutral-50 dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-900 rounded-full px-4 py-1.5">
               <div className="text-right mr-3 pr-3 border-r border-neutral-200 dark:border-neutral-800">
                 <p className="text-[9px] uppercase tracking-widest font-bold text-neutral-400">{showOfficialAccounts ? 'Accounts' : 'Actors'}</p>
@@ -309,52 +295,74 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-          <div className="max-w-[1600px] mx-auto pb-20">
+        <main className="flex-1 flex flex-col overflow-hidden p-6 lg:p-8">
+          <div className="max-w-[1600px] w-full mx-auto flex-1 flex flex-col min-h-0">
             {processedActors.length > 0 ? (
               viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {processedActors.map((actor, i) => <ActorCard key={i} actor={actor} />)}
+                // GRID VIEW: Handled its own scrolling container to utilize the full height
+                <div className="overflow-y-auto custom-scrollbar flex-1 pb-10 pr-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {processedActors.map((actor, i) => <ActorCard key={i} actor={actor} />)}
+                  </div>
                 </div>
               ) : (
-                <div className="bg-white dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-900 rounded-2xl overflow-hidden shadow-sm">
-                  <div className="overflow-x-auto">
+                // TABLE VIEW: Snaps to the exact remaining height of the viewport
+                <div className="bg-white dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-900 rounded-2xl shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden relative">
+                  <div className="overflow-auto custom-scrollbar flex-1">
                     <table className="w-full text-sm text-left text-neutral-600 dark:text-neutral-400">
-                      <thead className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest bg-neutral-50 dark:bg-[#111] border-b border-neutral-200 dark:border-neutral-900 whitespace-nowrap">
+                      <thead className="text-xs font-black text-black dark:text-white uppercase tracking-widest bg-neutral-100 dark:bg-[#111] border-b border-neutral-200 dark:border-neutral-900 whitespace-nowrap sticky top-0 z-20 shadow-sm">
                         <tr>
-                          <th className="px-6 py-5">Name</th>
-                          <th className="px-6 py-5">Handle</th>
-                          <th className="px-6 py-5">Show & Time</th>
-                          <th className="px-6 py-5">Gender</th>
-                          <th className="px-6 py-5 text-right">Followers</th>
-                          <th className="px-6 py-5 text-right">Avg Views</th>
-                          <th className="px-6 py-5 text-right">View Rate</th>
+                          <th className="px-6 py-4 min-w-[220px]">Name</th>
+                          <th className="px-6 py-4 min-w-[160px]">Show & Time</th>
+                          <th className="px-6 py-4 text-right min-w-[100px]">Followers</th>
+                          <th className="px-6 py-4 text-right min-w-[120px]">View Rate</th>
+                          <th className="px-6 py-4 text-right min-w-[100px]">Avg Likes</th>
+                          <th className="px-6 py-4 text-right min-w-[100px]">Avg Views</th>
+                          <th className="px-6 py-4 text-right min-w-[120px]">Avg Comments</th>
+                          <th className="px-6 py-4 text-right min-w-[150px]">Handle</th>
                         </tr>
                       </thead>
                       <tbody>
                         {processedActors.map((actor, i) => (
-                          <tr key={i} className="border-b border-neutral-100 dark:border-neutral-900/50 hover:bg-neutral-50 dark:hover:bg-[#111] transition-colors">
-                            <td className="px-6 py-4 font-bold text-black dark:text-white flex items-center min-w-[200px]">
-                              <div className="w-10 h-10 rounded-full bg-neutral-200 dark:bg-neutral-800 mr-4 overflow-hidden shrink-0">
+                          <tr key={i} className="border-b border-neutral-100 dark:border-neutral-900/50 hover:bg-neutral-50 dark:hover:bg-[#111] transition-colors whitespace-nowrap group">
+                            
+                            <td className="px-6 py-3 font-bold text-black dark:text-white flex items-center min-w-[220px]">
+                              <div className="w-9 h-9 rounded-full bg-neutral-200 dark:bg-neutral-800 mr-4 overflow-hidden shrink-0">
                                 {actor.headshotUrl ? (
                                   <img src={actor.headshotUrl} className="w-full h-full object-cover"/>
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold">{actor.realName.charAt(0)}</div>
+                                  <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-base">{actor.realName.charAt(0)}</div>
                                 )}
                               </div>
-                              {actor.realName}
+                              <div className="flex flex-col justify-center">
+                                <span className="leading-tight">{actor.realName}</span>
+                                {actor.reelName && actor.reelName !== '-' && (
+                                  <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mt-0.5">as {actor.reelName}</span>
+                                )}
+                              </div>
                             </td>
-                            <td className="px-6 py-4 font-medium"><a href={`https://instagram.com/${actor.handle}`} target="_blank" className="text-neutral-500 hover:text-blue-500 transition-colors">@{actor.handle}</a></td>
-                            <td className="px-6 py-4 min-w-[150px]">
+                            
+                            <td className="px-6 py-3 align-middle">
                                 <div className="font-bold text-black dark:text-white line-clamp-1">{actor.showName}</div>
-                                <div className="text-xs text-neutral-500 mt-0.5">{actor.timeSlot}</div>
+                                <div className="text-[11px] text-neutral-500 mt-0.5 flex items-center"><Clock className="w-3 h-3 mr-1" />{actor.timeSlot}</div>
                             </td>
-                            <td className="px-6 py-4 font-medium">{actor.gender}</td>
-                            <td className="px-6 py-4 text-right font-bold text-black dark:text-white">{actor.metrics?.formattedFollowers || '-'}</td>
-                            <td className="px-6 py-4 text-right font-medium">{actor.metrics?.avgReelViews || '-'}</td>
-                            <td className="px-6 py-4 text-right font-bold text-emerald-600 dark:text-emerald-500">
+                            
+                            <td className="px-6 py-3 text-right align-middle font-bold text-black dark:text-white">{actor.metrics?.formattedFollowers || '-'}</td>
+                            
+                            <td className="px-6 py-3 text-right align-middle font-black text-emerald-600 dark:text-emerald-500 bg-emerald-50/30 dark:bg-emerald-900/10">
                               {actor.metrics?.viewRate || '-'}
                             </td>
+                            
+                            <td className="px-6 py-3 text-right align-middle font-medium">{actor.metrics?.avgPhotoLikes || '-'}</td>
+                            <td className="px-6 py-3 text-right align-middle font-medium">{actor.metrics?.avgReelViews || '-'}</td>
+                            <td className="px-6 py-3 text-right align-middle font-medium">{actor.metrics?.avgComments || '-'}</td>
+                            
+                            <td className="px-6 py-3 text-right align-middle">
+                              <a href={`https://instagram.com/${actor.handle}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-end px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all text-[11px] font-bold w-fit ml-auto tracking-wide">
+                                @{actor.handle} <ExternalLink className="w-3 h-3 ml-1.5 opacity-50 group-hover:opacity-100"/>
+                              </a>
+                            </td>
+                            
                           </tr>
                         ))}
                       </tbody>
@@ -363,9 +371,9 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
                 </div> 
               )
             ) : (
-              <div className="py-32 flex flex-col items-center justify-center text-neutral-400">
+              <div className="flex-1 flex flex-col items-center justify-center text-neutral-400">
                 <p className="text-lg font-bold text-neutral-600 dark:text-neutral-500">No {showOfficialAccounts ? 'accounts' : 'actors'} match these filters.</p>
-                <button onClick={() => { setSelectedChannels([]); setSelectedShows([]); setSelectedGenders([]); }} className="mt-4 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg text-sm font-bold">Reset Filters</button>
+                <button onClick={() => { setSelectedChannels([]); setSelectedShows([]); setSelectedGenders([]); }} className="mt-4 px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold shadow-sm hover:scale-105 transition-transform">Reset Filters</button>
               </div>
             )}
           </div>
