@@ -1,0 +1,732 @@
+2026-04-14 11:29:26 | file_cache is only supported with oauth2client<4.0.0
+2026-04-14 11:29:31 | Starting Macro Multi-Platform Tracker [VISIBLE DEBUGGING MODE]...
+2026-04-14 11:29:35 | Processing 3 active channels...
+
+2026-04-14 11:29:35 |  -> Fetching data for Zee TV...
+2026-04-14 11:29:36 |     ✓ YouTube: Not Found
+2026-04-14 11:29:40 |     ✓ Instagram: 4M
+2026-04-14 11:29:48 |     ✓ Facebook: 40M
+2026-04-14 11:29:53 |  -> Fetching data for Zee Cinema...
+2026-04-14 11:29:53 |     ✓ YouTube: Not Found
+2026-04-14 11:29:58 |     ✓ Instagram: 527.4K
+2026-04-14 11:30:03 |     ✓ Facebook: 3.9M
+2026-04-14 11:30:08 |  -> Fetching data for Zee Telugu...
+2026-04-14 11:30:08 |     ✓ YouTube: Not Found
+2026-04-14 11:30:12 |     ✓ Instagram: 2.9M
+2026-04-14 11:30:17 |     ✓ Facebook: 8.8M
+2026-04-14 11:30:17 | Appending data to Google Sheets Data Log...
+2026-04-14 11:30:18 | Update complete! New macro historical data logged successfully.
+2026-04-14 11:36:08 | file_cache is only supported with oauth2client<4.0.0
+2026-04-14 11:36:13 | Starting Macro Multi-Platform Tracker [VISIBLE DEBUGGING MODE]...
+2026-04-14 11:36:15 | Processing 3 active channels...
+
+2026-04-14 11:36:15 |  -> Fetching data for Zee TV...
+2026-04-14 11:36:16 |     ✓ YouTube: 97.6M
+2026-04-14 11:36:21 |     ✓ Instagram: 4M
+2026-04-14 11:36:26 |     ✓ Facebook: 40M
+2026-04-14 11:36:31 |  -> Fetching data for Zee Cinema...
+2026-04-14 11:36:31 |     ✓ YouTube: 4.4M
+2026-04-14 11:36:35 |     ✓ Instagram: 527.4K
+2026-04-14 11:36:40 |     ✓ Facebook: 3.9M
+2026-04-14 11:36:44 |  -> Fetching data for Zee Telugu...
+2026-04-14 11:36:45 |     ✓ YouTube: 17.8M
+2026-04-14 11:36:49 |     ✓ Instagram: 2.9M
+2026-04-14 11:36:53 |     ✓ Facebook: 8.8M
+2026-04-14 11:36:54 | Appending data to Google Sheets Data Log...
+2026-04-14 11:36:54 | Update complete! New macro historical data logged successfully.
+2026-04-14 12:03:59 | file_cache is only supported with oauth2client<4.0.0
+2026-04-14 12:04:04 | Starting Macro Multi-Platform Tracker [VISIBLE DEBUGGING MODE]...
+2026-04-14 12:04:06 | Processing 11 active channels...
+
+2026-04-14 12:04:06 |  -> Fetching data for Zee TV...
+2026-04-14 12:04:09 |     ✓ YouTube: 97.6
+2026-04-14 12:04:13 |     ✓ Instagram: 3.9834
+2026-04-14 12:04:19 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:04:19 |     ✓ Facebook: Error
+2026-04-14 12:04:25 |  -> Fetching data for Zee Cinema...
+2026-04-14 12:04:25 |     ✓ YouTube: 4.4
+2026-04-14 12:04:29 |     ✓ Instagram: 0.5274
+2026-04-14 12:04:34 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:04:34 |     ✓ Facebook: Error
+2026-04-14 12:04:39 |  -> Fetching data for Zee Telugu...
+2026-04-14 12:04:39 |     ✓ YouTube: 17.8
+2026-04-14 12:04:43 |     ✓ Instagram: 2.9429
+2026-04-14 12:04:47 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:04:47 |     ✓ Facebook: Error
+2026-04-14 12:04:54 |  -> Fetching data for Zee Bangla...
+2026-04-14 12:04:54 |     ✓ YouTube: 21.2
+2026-04-14 12:04:59 |     ✓ Instagram: 1.5817
+2026-04-14 12:05:04 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:05:04 |     ✓ Facebook: Error
+2026-04-14 12:05:10 |  -> Fetching data for Zee Tamil...
+2026-04-14 12:05:10 |     ✓ YouTube: 17.7
+2026-04-14 12:05:14 |     ✓ Instagram: 5.528
+2026-04-14 12:05:19 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:05:19 |     ✓ Facebook: Error
+2026-04-14 12:05:24 |  -> Fetching data for & TV...
+2026-04-14 12:05:24 |     ✓ YouTube: 25.5
+2026-04-14 12:05:29 |     ✓ Instagram: 1.5331
+2026-04-14 12:05:34 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:05:34 |     ✓ Facebook: Error
+2026-04-14 12:05:38 |  -> Fetching data for Zee Marathi...
+2026-04-14 12:05:38 |     ✓ YouTube: 12.4
+2026-04-14 12:05:42 |     ✓ Instagram: 3.0878
+2026-04-14 12:05:47 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:05:47 |     ✓ Facebook: Error
+2026-04-14 12:05:54 |  -> Fetching data for Zee Talkies...
+2026-04-14 12:05:54 |     ✓ YouTube: 1.19
+2026-04-14 12:05:58 |     ✓ Instagram: 0.8398
+2026-04-14 12:06:03 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:06:03 |     ✓ Facebook: Error
+2026-04-14 12:06:08 |  -> Fetching data for Zee Sarthak...
+2026-04-14 12:06:08 |     ✓ YouTube: 3.69
+2026-04-14 12:06:12 |     ✓ Instagram: 0.832
+2026-04-14 12:06:17 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:06:17 |     ✓ Facebook: Error
+2026-04-14 12:06:22 |  -> Fetching data for Zee Punjabi...
+2026-04-14 12:06:22 |     ✓ YouTube: 0.625
+2026-04-14 12:06:26 |     ✓ Instagram: 0.1527
+2026-04-14 12:06:32 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:06:32 |     ✓ Facebook: Error
+2026-04-14 12:06:39 |  -> Fetching data for Zee Keralam...
+2026-04-14 12:06:39 |     ✓ YouTube: 2.95
+2026-04-14 12:06:43 |     ✓ Instagram: 0.651
+2026-04-14 12:06:48 |    [FB Error: name 'parse_to_raw_integer' is not defined]
+2026-04-14 12:06:48 |     ✓ Facebook: Error
+2026-04-14 12:06:48 | Appending data to Google Sheets Data Log...
+2026-04-14 12:06:48 | Update complete! New macro historical data logged successfully.
+2026-04-14 12:09:30 | file_cache is only supported with oauth2client<4.0.0
+2026-04-14 12:09:35 | Starting Macro Multi-Platform Tracker [VISIBLE DEBUGGING MODE]...
+2026-04-14 12:09:38 | Processing 3 active channels...
+
+2026-04-14 12:09:38 |  -> Fetching data for Zee TV...
+2026-04-14 12:09:38 |     ✓ YouTube: 97.6
+2026-04-14 12:09:43 |     ✓ Instagram: 3.9834
+2026-04-14 12:09:49 |     ✓ Facebook: 40.0
+2026-04-14 12:09:54 |  -> Fetching data for Zee Cinema...
+2026-04-14 12:09:54 |     ✓ YouTube: 4.4
+2026-04-14 12:09:58 |     ✓ Instagram: 0.5274
+2026-04-14 12:10:04 |     ✓ Facebook: 3.9
+2026-04-14 12:10:09 |  -> Fetching data for Zee Telugu...
+2026-04-14 12:10:10 |     ✓ YouTube: 17.8
+2026-04-14 12:10:14 |     ✓ Instagram: 2.9429
+2026-04-14 12:10:19 |     ✓ Facebook: 8.8
+2026-04-14 12:10:19 | Appending data to Google Sheets Data Log...
+2026-04-14 12:10:20 | Update complete! New macro historical data logged successfully.
+2026-04-14 14:43:05 | file_cache is only supported with oauth2client<4.0.0
+2026-04-14 14:43:10 | Starting Macro Multi-Platform Tracker [VISIBLE DEBUGGING MODE]...
+2026-04-14 14:43:13 | Processing 44 active channels...
+
+2026-04-14 14:43:13 |  -> Fetching data for Zee TV...
+2026-04-14 14:43:13 |     ✓ YouTube: 97.6
+2026-04-14 14:43:18 |     ✓ Instagram: 3.9834
+2026-04-14 14:43:26 |     ✓ Facebook: 40.0
+2026-04-14 14:43:31 |  -> Fetching data for Zee Cinema...
+2026-04-14 14:43:31 |     ✓ YouTube: 4.4
+2026-04-14 14:43:35 |     ✓ Instagram: 0.5274
+2026-04-14 14:43:41 |     ✓ Facebook: 3.9
+2026-04-14 14:43:45 |  -> Fetching data for Zee Telugu...
+2026-04-14 14:43:46 |     ✓ YouTube: 17.8
+2026-04-14 14:43:50 |     ✓ Instagram: 2.9432
+2026-04-14 14:43:55 |     ✓ Facebook: 8.8
+2026-04-14 14:43:59 |  -> Fetching data for Zee Bangla...
+2026-04-14 14:43:59 |     ✓ YouTube: 21.2
+2026-04-14 14:44:04 |     ✓ Instagram: 1.5817
+2026-04-14 14:44:09 |     ✓ Facebook: 19.0
+2026-04-14 14:44:14 |  -> Fetching data for Zee Tamil...
+2026-04-14 14:44:14 |     ✓ YouTube: 17.7
+2026-04-14 14:44:18 |     ✓ Instagram: 5.5285
+2026-04-14 14:44:24 |     ✓ Facebook: 14.0
+2026-04-14 14:44:30 |  -> Fetching data for & TV...
+2026-04-14 14:44:30 |     ✓ YouTube: 25.5
+2026-04-14 14:44:34 |     ✓ Instagram: 1.5331
+2026-04-14 14:44:39 |     ✓ Facebook: 6.2
+2026-04-14 14:44:44 |  -> Fetching data for Zee Marathi...
+2026-04-14 14:44:44 |     ✓ YouTube: 12.4
+2026-04-14 14:44:48 |     ✓ Instagram: 3.088
+2026-04-14 14:44:54 |     ✓ Facebook: 9.0
+2026-04-14 14:45:00 |  -> Fetching data for Zee Talkies...
+2026-04-14 14:45:00 |     ✓ YouTube: 1.19
+2026-04-14 14:45:04 |     ✓ Instagram: 0.8398
+2026-04-14 14:45:10 |     ✓ Facebook: 2.5
+2026-04-14 14:45:16 |  -> Fetching data for Zee Sarthak...
+2026-04-14 14:45:16 |     ✓ YouTube: 3.69
+2026-04-14 14:45:21 |     ✓ Instagram: 0.832
+2026-04-14 14:45:26 |     ✓ Facebook: 3.5
+2026-04-14 14:45:32 |  -> Fetching data for Zee Punjabi...
+2026-04-14 14:45:33 |     ✓ YouTube: 0.625
+2026-04-14 14:45:38 |     ✓ Instagram: 0.1527
+2026-04-14 14:45:43 |     ✓ Facebook: 2.9
+2026-04-14 14:45:47 |  -> Fetching data for Zee Keralam...
+2026-04-14 14:45:48 |     ✓ YouTube: 2.95
+2026-04-14 14:45:52 |     ✓ Instagram: 0.6511
+2026-04-14 14:45:57 |     ✓ Facebook: 4.1
+2026-04-14 14:46:03 |  -> Fetching data for Zee Kannada...
+2026-04-14 14:46:03 |     ✓ YouTube: 7.82
+2026-04-14 14:46:08 |     ✓ Instagram: 10.0633
+2026-04-14 14:46:12 |     ✓ Facebook: 11.0
+2026-04-14 14:46:16 |  -> Fetching data for Zee Cinemalu...
+2026-04-14 14:46:17 |     ✓ YouTube: 6.42
+2026-04-14 14:46:21 |     ✓ Instagram: 0.2005
+2026-04-14 14:46:26 |     ✓ Facebook: 1.2
+2026-04-14 14:46:31 |  -> Fetching data for Zee Thirai...
+2026-04-14 14:46:31 |     ✓ YouTube: 0.32
+2026-04-14 14:46:35 |     ✓ Instagram: 0.8698
+2026-04-14 14:46:41 |     ✓ Facebook: 4.5
+2026-04-14 14:46:47 |  -> Fetching data for Zee Power...
+2026-04-14 14:46:47 |     ✓ YouTube: 0.0797
+2026-04-14 14:46:51 |     ✓ Instagram: 0.5718
+2026-04-14 14:46:57 |     ✓ Facebook: 2.1
+2026-04-14 14:47:02 |  -> Fetching data for & Pictures...
+2026-04-14 14:47:02 |     ✓ YouTube: 0.647
+2026-04-14 14:47:09 |     ✓ Instagram: Not Found
+2026-04-14 14:47:20 |     ✓ Facebook: 0.708
+2026-04-14 14:47:25 |  -> Fetching data for Zee Classic...
+2026-04-14 14:47:26 |     ✓ YouTube: 0.778
+2026-04-14 14:47:33 |     ✓ Instagram: 0.176
+2026-04-14 14:47:42 |     ✓ Facebook: 1.2
+2026-04-14 14:47:48 |  -> Fetching data for Zee Bollywood...
+2026-04-14 14:47:48 |     ✓ YouTube: 2.37
+2026-04-14 14:47:52 |     ✓ Instagram: 0.1324
+2026-04-14 14:47:58 |     ✓ Facebook: 0.778
+2026-04-14 14:48:04 |  -> Fetching data for Zee Anmol Cinema...
+2026-04-14 14:48:04 |     ✓ YouTube: 0.0265
+2026-04-14 14:48:09 |     ✓ Instagram: 0.003
+2026-04-14 14:48:14 |     ✓ Facebook: 0.026
+2026-04-14 14:48:20 |  -> Fetching data for Big Magic...
+2026-04-14 14:48:20 |     ✓ YouTube: 5.23
+2026-04-14 14:48:24 |     ✓ Instagram: 0.1315
+2026-04-14 14:48:30 |     ✓ Facebook: 0.827
+2026-04-14 14:48:34 |  -> Fetching data for Zing...
+2026-04-14 14:48:34 |     ✓ YouTube: 3.47
+2026-04-14 14:48:39 |     ✓ Instagram: 0.1921
+2026-04-14 14:48:45 |     ✓ Facebook: 1.2
+2026-04-14 14:48:51 |  -> Fetching data for Zee Punjabi...
+2026-04-14 14:48:51 |     ✓ YouTube: 0.625
+2026-04-14 14:48:55 |     ✓ Instagram: 0.1527
+2026-04-14 14:49:00 |     ✓ Facebook: 2.9
+2026-04-14 14:49:05 |  -> Fetching data for &flix...
+2026-04-14 14:49:07 |     ✓ YouTube: 0.0399
+2026-04-14 14:49:12 |     ✓ Instagram: 0.2928
+2026-04-14 14:49:29 |     ✓ Facebook: 1.9
+2026-04-14 14:49:35 |  -> Fetching data for Zee Chitramandir...
+2026-04-14 14:49:35 |     ✓ YouTube: 0.0954
+2026-04-14 14:49:39 |     ✓ Instagram: 0.0038
+2026-04-14 14:49:48 |     ✓ Facebook: 0.0095
+2026-04-14 14:49:52 |  -> Fetching data for Zee Yuva...
+2026-04-14 14:49:53 |     ✓ YouTube: 1.22
+2026-04-14 14:49:57 |     ✓ Instagram: 0.52
+2026-04-14 14:50:02 |     ✓ Facebook: 1.0
+2026-04-14 14:50:06 |  -> Fetching data for Zee Café...
+2026-04-14 14:50:06 |     ✓ YouTube: 0.251
+2026-04-14 14:50:11 |     ✓ Instagram: 0.2837
+2026-04-14 14:50:18 |     ✓ Facebook: 2.0
+2026-04-14 14:50:24 |  -> Fetching data for Zee Zest...
+2026-04-14 14:50:24 |     ✓ YouTube: 0.572
+2026-04-14 14:50:28 |     ✓ Instagram: 0.4475
+2026-04-14 14:50:33 |     ✓ Facebook: 1.2
+2026-04-14 14:50:40 |  -> Fetching data for Zee Biskope...
+2026-04-14 14:50:40 |     ✓ YouTube: 0.149
+2026-04-14 14:50:44 |     ✓ Instagram: 0.1587
+2026-04-14 14:50:50 |     ✓ Facebook: 0.443
+2026-04-14 14:50:54 |  -> Fetching data for Zee Bangla Sonar...
+2026-04-14 14:50:54 |     ✓ YouTube: 0.321
+2026-04-14 14:50:59 |     ✓ Instagram: 0.0581
+2026-04-14 14:51:04 |     ✓ Facebook: 1.9
+2026-04-14 14:51:09 |  -> Fetching data for Zee News...
+2026-04-14 14:51:09 |     ✓ YouTube: 42.0
+2026-04-14 14:51:13 |     ✓ Instagram: 4.4355
+2026-04-14 14:51:18 |     ✓ Facebook: 24.0
+2026-04-14 14:51:24 |  -> Fetching data for Zee Bharat...
+2026-04-14 14:51:24 |     ✓ YouTube: 0.368
+2026-04-14 14:51:28 |     ✓ Instagram: Not Found
+2026-04-14 14:51:33 |     ✓ Facebook: Not Found
+2026-04-14 14:51:39 |  -> Fetching data for WION...
+2026-04-14 14:51:40 |     ✓ YouTube: 10.4
+2026-04-14 14:51:43 |     ✓ Instagram: 0.8975
+2026-04-14 14:51:48 |     ✓ Facebook: 3.5
+2026-04-14 14:51:55 |  -> Fetching data for SALAAM TV...
+2026-04-14 14:51:55 |     ✓ YouTube: 1.47
+2026-04-14 14:51:59 |     ✓ Instagram: 0.8321
+2026-04-14 14:52:04 |     ✓ Facebook: 2.3
+2026-04-14 14:52:10 |  -> Fetching data for Zee Business...
+2026-04-14 14:52:10 |     ✓ YouTube: 6.33
+2026-04-14 14:52:14 |     ✓ Instagram: 1.9425
+2026-04-14 14:52:19 |     ✓ Facebook: 2.8
+2026-04-14 14:52:24 |  -> Fetching data for Z 24 Taas...
+2026-04-14 14:52:24 |     ✓ YouTube: 9.81
+2026-04-14 14:52:28 |     ✓ Instagram: 2.3219
+2026-04-14 14:52:33 |     ✓ Facebook: 4.2
+2026-04-14 14:52:40 |  -> Fetching data for Z Madhya Pradesh...
+2026-04-14 14:52:40 |     ✓ YouTube: 2.25
+2026-04-14 14:52:44 |     ✓ Instagram: 0.0627
+2026-04-14 14:52:49 |     ✓ Facebook: 1.6
+2026-04-14 14:52:56 |  -> Fetching data for Z Uttar Pradesh...
+2026-04-14 14:52:56 |     ✓ YouTube: 3.16
+2026-04-14 14:53:00 |     ✓ Instagram: Not Found
+2026-04-14 14:53:05 |     ✓ Facebook: 1.7
+2026-04-14 14:53:12 |  -> Fetching data for Z 24 Kalak (Gujarati)...
+2026-04-14 14:53:12 |     ✓ YouTube: 2.16
+2026-04-14 14:53:16 |     ✓ Instagram: 2.8499
+2026-04-14 14:53:21 |     ✓ Facebook: 3.0
+2026-04-14 14:53:25 |  -> Fetching data for Z Rajasthan...
+2026-04-14 14:53:26 |     ✓ YouTube: 3.44
+2026-04-14 14:53:30 |     ✓ Instagram: 0.1987
+2026-04-14 14:53:35 |     ✓ Facebook: 3.7
+2026-04-14 14:53:41 |  -> Fetching data for Z Bihar Jharkhand...
+2026-04-14 14:53:41 |     ✓ YouTube: 6.48
+2026-04-14 14:53:45 |     ✓ Instagram: 0.5347
+2026-04-14 14:53:50 |     ✓ Facebook: 3.4
+2026-04-14 14:53:57 |  -> Fetching data for Z Delhi NCR Haryana...
+2026-04-14 14:53:57 |     ✓ YouTube: 0.167
+2026-04-14 14:54:01 |     ✓ Instagram: 0.0902
+2026-04-14 14:54:06 |     ✓ Facebook: 0.246
+2026-04-14 14:54:11 |  -> Fetching data for Z Malayalam News...
+2026-04-14 14:54:11 |     ✓ YouTube: 0.585
+2026-04-14 14:54:15 |     ✓ Instagram: 0.2433
+2026-04-14 14:54:20 |     ✓ Facebook: 0.585
+2026-04-14 14:54:27 |  -> Fetching data for Z Kannada News...
+2026-04-14 14:54:27 |     ✓ YouTube: 0.809
+2026-04-14 14:54:31 |     ✓ Instagram: 0.8261
+2026-04-14 14:54:37 |     ✓ Facebook: 1.2
+2026-04-14 14:54:41 |  -> Fetching data for Z 24 Ghanta (Bengali)...
+2026-04-14 14:54:41 |     ✓ YouTube: 7.16
+2026-04-14 14:54:46 |     ✓ Instagram: 0.2504
+2026-04-14 14:54:51 |     ✓ Facebook: 12.0
+2026-04-14 14:54:51 | Appending data to Google Sheets Data Log...
+2026-04-14 14:54:52 | Update complete! New macro historical data logged successfully.
+2026-04-14 15:52:58 | file_cache is only supported with oauth2client<4.0.0
+2026-04-14 15:53:03 | Starting Macro Multi-Platform Tracker [VISIBLE DEBUGGING MODE]...
+2026-04-14 15:53:03 | Caching historical data to use as a fallback for scrape errors...
+2026-04-14 15:53:04 | Target Mode Activated: Found 4 channels marked 'Target'. Skipping everything else.
+2026-04-14 15:53:06 | 
+ -> Fetching data for Z Music Ibadat...
+2026-04-14 15:53:06 |     ✓ YouTube: 0.0633
+2026-04-14 15:53:06 |     ✓ Instagram: Skipped (0)
+2026-04-14 15:53:06 |     ✓ Facebook: Skipped (0)
+2026-04-14 15:53:12 | 
+ -> Fetching data for Z Music Classic...
+2026-04-14 15:53:12 |     ✓ YouTube: 20.4
+2026-04-14 15:53:12 |     ✓ Instagram: Skipped (0)
+2026-04-14 15:53:12 |     ✓ Facebook: Skipped (0)
+2026-04-14 15:53:19 | 
+ -> Fetching data for Z Music Rajasthani...
+2026-04-14 15:53:19 |     ✓ YouTube: 0.183
+2026-04-14 15:53:19 |     ✓ Instagram: Skipped (0)
+2026-04-14 15:53:19 |     ✓ Facebook: Skipped (0)
+2026-04-14 15:53:25 | 
+ -> Fetching data for Bollywood Mashup...
+2026-04-14 15:53:25 |     ✓ YouTube: 0.0427
+2026-04-14 15:53:25 |     ✓ Instagram: Skipped (0)
+2026-04-14 15:53:25 |     ✓ Facebook: Skipped (0)
+2026-04-14 15:53:25 | 
+Appending data to Google Sheets Data Log...
+2026-04-14 15:53:26 | Update complete! New macro historical data logged successfully.
+2026-04-14 15:53:26 | Note: Please remember to change your 'Target' statuses back to 'Active' in your sheet for the next full run.
+2026-04-14 15:55:35 | file_cache is only supported with oauth2client<4.0.0
+2026-04-14 15:55:39 | Starting Macro Multi-Platform Tracker [VISIBLE DEBUGGING MODE]...
+2026-04-14 15:55:39 | Caching historical data to use as a fallback for scrape errors...
+2026-04-14 15:55:40 | Standard Mode: Processing 71 active channels.
+2026-04-14 15:55:42 | 
+ -> Fetching data for Zee TV...
+2026-04-14 15:55:43 |     ✓ YouTube: 97.6
+2026-04-14 15:55:48 |     ✓ Instagram: 3.9835
+2026-04-14 15:55:53 |     ⚠ Facebook Failed. Using historical fallback: Not Found
+2026-04-14 15:56:00 | 
+ -> Fetching data for Zee Cinema...
+2026-04-14 15:56:00 |     ✓ YouTube: 4.4
+2026-04-14 15:56:05 |     ✓ Instagram: 0.5274
+2026-04-14 15:56:10 |     ⚠ Facebook Failed. Using historical fallback: Not Found
+2026-04-14 15:56:15 | 
+ -> Fetching data for Zee Telugu...
+2026-04-14 15:56:15 |     ✓ YouTube: 17.8
+2026-04-14 15:56:19 |     ✓ Instagram: 2.9434
+2026-04-14 15:56:24 |     ⚠ Facebook Failed. Using historical fallback: Not Found
+2026-04-14 15:56:30 | 
+ -> Fetching data for Zee Bangla...
+2026-04-14 15:56:30 |     ✓ YouTube: 21.2
+2026-04-14 15:56:34 |     ✓ Instagram: 1.5818
+2026-04-14 15:56:39 |     ⚠ Facebook Failed. Using historical fallback: Not Found
+2026-04-14 15:56:43 | 
+ -> Fetching data for Zee Tamil...
+2026-04-14 15:56:43 |     ✓ YouTube: 17.7
+2026-04-14 15:56:47 |     ✓ Instagram: 5.5288
+2026-04-14 15:56:53 |     ⚠ Facebook Failed. Using historical fallback: Not Found
+2026-04-14 15:56:58 | 
+ -> Fetching data for & TV...
+2026-04-14 15:56:58 |     ✓ YouTube: 25.5
+2026-04-14 15:57:02 |     ✓ Instagram: 1.5332
+2026-04-14 16:00:59 | file_cache is only supported with oauth2client<4.0.0
+2026-04-14 16:01:03 | Starting Macro Multi-Platform Tracker [VISIBLE DEBUGGING MODE]...
+2026-04-14 16:01:03 | Caching historical data to use as a fallback for scrape errors...
+2026-04-14 16:01:04 | Standard Mode: Processing 71 active channels.
+2026-04-14 16:01:05 | 
+ -> Fetching data for Zee TV...
+2026-04-14 16:01:06 |     ✓ YouTube: 97.6
+2026-04-14 16:01:10 |     ✓ Instagram: 3.9835
+2026-04-14 16:01:16 |     ✓ Facebook: 40.0
+2026-04-14 16:01:22 | 
+ -> Fetching data for Zee Cinema...
+2026-04-14 16:01:23 |     ✓ YouTube: 4.4
+2026-04-14 16:02:28 | file_cache is only supported with oauth2client<4.0.0
+2026-04-14 16:02:32 | Starting Macro Multi-Platform Tracker [VISIBLE DEBUGGING MODE]...
+2026-04-14 16:02:32 | Caching historical data to use as a fallback for scrape errors...
+2026-04-14 16:02:33 | Standard Mode: Processing 71 active channels.
+2026-04-14 16:02:35 | 
+ -> Fetching data for Zee TV...
+2026-04-14 16:02:35 |     ✓ YouTube: 97.6
+2026-04-14 16:02:40 |     ✓ Instagram: 3.9835
+2026-04-14 16:02:46 |     ✓ Facebook: 40.0
+2026-04-14 16:02:53 | 
+ -> Fetching data for Zee Cinema...
+2026-04-14 16:02:53 |     ✓ YouTube: 4.4
+2026-04-14 16:02:57 |     ✓ Instagram: 0.5274
+2026-04-14 16:03:03 |     ✓ Facebook: 3.9
+2026-04-14 16:03:07 | 
+ -> Fetching data for Zee Telugu...
+2026-04-14 16:03:08 |     ✓ YouTube: 17.8
+2026-04-14 16:03:12 |     ✓ Instagram: 2.9434
+2026-04-14 16:03:18 |     ✓ Facebook: 8.8
+2026-04-14 16:03:23 | 
+ -> Fetching data for Zee Bangla...
+2026-04-14 16:03:24 |     ✓ YouTube: 21.2
+2026-04-14 16:03:28 |     ✓ Instagram: 1.5818
+2026-04-14 16:03:35 |     ✓ Facebook: 19.0
+2026-04-14 16:03:40 | 
+ -> Fetching data for Zee Tamil...
+2026-04-14 16:03:40 |     ✓ YouTube: 17.7
+2026-04-14 16:03:45 |     ✓ Instagram: 5.5288
+2026-04-14 16:03:51 |     ✓ Facebook: 14.0
+2026-04-14 16:03:57 | 
+ -> Fetching data for & TV...
+2026-04-14 16:03:57 |     ✓ YouTube: 25.5
+2026-04-14 16:04:01 |     ✓ Instagram: 1.5332
+2026-04-14 16:04:07 |     ✓ Facebook: 6.2
+2026-04-14 16:04:11 | 
+ -> Fetching data for Zee Marathi...
+2026-04-14 16:04:11 |     ✓ YouTube: 12.4
+2026-04-14 16:04:15 |     ✓ Instagram: 3.0881
+2026-04-14 16:04:21 |     ✓ Facebook: 9.0
+2026-04-14 16:04:25 | 
+ -> Fetching data for Zee Talkies...
+2026-04-14 16:04:26 |     ✓ YouTube: 1.19
+2026-04-14 16:04:30 |     ✓ Instagram: 0.8398
+2026-04-14 16:04:36 |     ✓ Facebook: 2.5
+2026-04-14 16:04:42 | 
+ -> Fetching data for Zee Sarthak...
+2026-04-14 16:04:42 |     ✓ YouTube: 3.69
+2026-04-14 16:04:47 |     ✓ Instagram: 0.832
+2026-04-14 16:04:53 |     ✓ Facebook: 3.5
+2026-04-14 16:04:58 | 
+ -> Fetching data for Zee Punjabi...
+2026-04-14 16:04:58 |     ✓ YouTube: 0.625
+2026-04-14 16:05:03 |     ✓ Instagram: 0.1527
+2026-04-14 16:05:08 |     ✓ Facebook: 2.9
+2026-04-14 16:05:13 | 
+ -> Fetching data for Zee Keralam...
+2026-04-14 16:05:13 |     ✓ YouTube: 2.95
+2026-04-14 16:05:17 |     ✓ Instagram: 0.6512
+2026-04-14 16:05:23 |     ✓ Facebook: 4.1
+2026-04-14 16:05:27 | 
+ -> Fetching data for Zee Kannada...
+2026-04-14 16:05:28 |     ✓ YouTube: 7.82
+2026-04-14 16:05:32 |     ✓ Instagram: 10.0634
+2026-04-14 16:05:37 |     ✓ Facebook: 11.0
+2026-04-14 16:05:42 | 
+ -> Fetching data for Zee Cinemalu...
+2026-04-14 16:05:42 |     ✓ YouTube: 6.42
+2026-04-14 16:05:46 |     ✓ Instagram: 0.2005
+2026-04-14 16:05:52 |     ✓ Facebook: 1.2
+2026-04-14 16:05:58 | 
+ -> Fetching data for Zee Thirai...
+2026-04-14 16:05:58 |     ✓ YouTube: 0.32
+2026-04-14 16:06:02 |     ✓ Instagram: 0.8701
+2026-04-14 16:06:09 |     ✓ Facebook: 4.5
+2026-04-14 16:06:15 | 
+ -> Fetching data for Zee Power...
+2026-04-14 16:06:15 |     ✓ YouTube: 0.0797
+2026-04-14 16:06:20 |     ✓ Instagram: 0.5717
+2026-04-14 16:06:30 |     ✓ Facebook: 2.1
+2026-04-14 16:06:34 | 
+ -> Fetching data for & Pictures...
+2026-04-14 16:06:34 |     ✓ YouTube: 0.647
+2026-04-14 16:06:38 |     ✓ Instagram: 0.1196
+2026-04-14 16:06:44 |     ✓ Facebook: 0.708
+2026-04-14 16:06:51 | 
+ -> Fetching data for Zee Classic...
+2026-04-14 16:06:51 |     ✓ YouTube: 0.778
+2026-04-14 16:06:55 |     ✓ Instagram: 0.176
+2026-04-14 16:07:02 |     ✓ Facebook: 1.2
+2026-04-14 16:07:08 | 
+ -> Fetching data for Zee Bollywood...
+2026-04-14 16:07:08 |     ✓ YouTube: 2.37
+2026-04-14 16:07:12 |     ✓ Instagram: 0.1324
+2026-04-14 16:07:18 |     ✓ Facebook: 0.778
+2026-04-14 16:07:22 | 
+ -> Fetching data for Zee Anmol Cinema...
+2026-04-14 16:07:22 |     ✓ YouTube: 0.0265
+2026-04-14 16:07:26 |     ✓ Instagram: 0.003
+2026-04-14 16:07:32 |     ✓ Facebook: 0.026
+2026-04-14 16:07:37 | 
+ -> Fetching data for Big Magic...
+2026-04-14 16:07:38 |     ✓ YouTube: 5.23
+2026-04-14 16:07:42 |     ✓ Instagram: 0.1316
+2026-04-14 16:07:48 |     ✓ Facebook: 0.827
+2026-04-14 16:07:52 | 
+ -> Fetching data for Zing...
+2026-04-14 16:07:52 |     ✓ YouTube: 3.47
+2026-04-14 16:07:56 |     ✓ Instagram: 0.1921
+2026-04-14 16:08:02 |     ✓ Facebook: 1.2
+2026-04-14 16:08:09 | 
+ -> Fetching data for Zee Punjabi...
+2026-04-14 16:08:09 |     ✓ YouTube: 0.625
+2026-04-14 16:08:13 |     ✓ Instagram: 0.1527
+2026-04-14 16:08:18 |     ✓ Facebook: 2.9
+2026-04-14 16:08:25 | 
+ -> Fetching data for &flix...
+2026-04-14 16:08:25 |     ✓ YouTube: 0.0399
+2026-04-14 16:08:30 |     ✓ Instagram: 0.2928
+2026-04-14 16:08:37 |     ✓ Facebook: 1.9
+2026-04-14 16:08:42 | 
+ -> Fetching data for Zee Chitramandir...
+2026-04-14 16:08:42 |     ✓ YouTube: 0.0954
+2026-04-14 16:08:46 |     ✓ Instagram: 0.0038
+2026-04-14 16:08:52 |     ✓ Facebook: 0.0095
+2026-04-14 16:08:56 | 
+ -> Fetching data for Zee Yuva...
+2026-04-14 16:08:57 |     ✓ YouTube: 1.22
+2026-04-14 16:09:01 |     ✓ Instagram: 0.52
+2026-04-14 16:09:06 |     ✓ Facebook: 1.0
+2026-04-14 16:09:12 | 
+ -> Fetching data for Zee Café...
+2026-04-14 16:09:12 |     ✓ YouTube: 0.251
+2026-04-14 16:09:16 |     ✓ Instagram: 0.2837
+2026-04-14 16:09:23 |     ✓ Facebook: 2.0
+2026-04-14 16:09:28 | 
+ -> Fetching data for Zee Zest...
+2026-04-14 16:09:28 |     ✓ YouTube: 0.572
+2026-04-14 16:09:32 |     ✓ Instagram: 0.4475
+2026-04-14 16:09:39 |     ✓ Facebook: 1.2
+2026-04-14 16:09:46 | 
+ -> Fetching data for Zee Biskope...
+2026-04-14 16:09:46 |     ✓ YouTube: 0.149
+2026-04-14 16:09:50 |     ✓ Instagram: 0.1587
+2026-04-14 16:09:56 |     ✓ Facebook: 0.443
+2026-04-14 16:10:02 | 
+ -> Fetching data for Zee Bangla Sonar...
+2026-04-14 16:10:02 |     ✓ YouTube: 0.321
+2026-04-14 16:10:06 |     ✓ Instagram: 0.0581
+2026-04-14 16:10:13 |     ✓ Facebook: 1.9
+2026-04-14 16:10:17 | 
+ -> Fetching data for Zee News...
+2026-04-14 16:10:17 |     ✓ YouTube: 42.0
+2026-04-14 16:10:21 |     ✓ Instagram: 4.4356
+2026-04-14 16:10:27 |     ✓ Facebook: 24.0
+2026-04-14 16:10:31 | 
+ -> Fetching data for Zee Bharat...
+2026-04-14 16:10:32 |     ✓ YouTube: 0.368
+2026-04-14 16:10:36 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:10:41 |     ⚠ Facebook Failed. Using historical fallback: Not Found
+2026-04-14 16:10:46 | 
+ -> Fetching data for WION...
+2026-04-14 16:10:46 |     ✓ YouTube: 10.4
+2026-04-14 16:10:51 |     ✓ Instagram: 0.8975
+2026-04-14 16:10:56 |     ✓ Facebook: 3.5
+2026-04-14 16:11:01 | 
+ -> Fetching data for SALAAM TV...
+2026-04-14 16:11:01 |     ✓ YouTube: 1.47
+2026-04-14 16:11:05 |     ✓ Instagram: 0.8321
+2026-04-14 16:11:12 |     ✓ Facebook: 2.3
+2026-04-14 16:11:16 | 
+ -> Fetching data for Zee Business...
+2026-04-14 16:11:16 |     ✓ YouTube: 6.33
+2026-04-14 16:11:20 |     ✓ Instagram: 1.9425
+2026-04-14 16:11:26 |     ✓ Facebook: 2.8
+2026-04-14 16:11:32 | 
+ -> Fetching data for Z 24 Taas...
+2026-04-14 16:11:33 |     ✓ YouTube: 9.81
+2026-04-14 16:11:39 |     ✓ Instagram: 2.322
+2026-04-14 16:11:45 |     ✓ Facebook: 4.2
+2026-04-14 16:11:51 | 
+ -> Fetching data for Z Madhya Pradesh...
+2026-04-14 16:11:52 |     ✓ YouTube: 2.25
+2026-04-14 16:11:56 |     ✓ Instagram: 0.0627
+2026-04-14 16:12:01 |     ✓ Facebook: 1.6
+2026-04-14 16:12:07 | 
+ -> Fetching data for Z Uttar Pradesh...
+2026-04-14 16:12:07 |     ✓ YouTube: 3.16
+2026-04-14 16:12:11 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:12:17 |     ✓ Facebook: 1.7
+2026-04-14 16:12:21 | 
+ -> Fetching data for Z 24 Kalak (Gujarati)...
+2026-04-14 16:12:22 |     ✓ YouTube: 2.16
+2026-04-14 16:12:26 |     ✓ Instagram: 2.8501
+2026-04-14 16:12:32 |     ✓ Facebook: 3.0
+2026-04-14 16:12:38 | 
+ -> Fetching data for Z Rajasthan...
+2026-04-14 16:12:38 |     ✓ YouTube: 3.44
+2026-04-14 16:12:42 |     ✓ Instagram: 0.1987
+2026-04-14 16:12:48 |     ✓ Facebook: 3.7
+2026-04-14 16:12:54 | 
+ -> Fetching data for Z Bihar Jharkhand...
+2026-04-14 16:12:54 |     ✓ YouTube: 6.48
+2026-04-14 16:12:59 |     ✓ Instagram: 0.5347
+2026-04-14 16:13:04 |     ✓ Facebook: 3.4
+2026-04-14 16:13:10 | 
+ -> Fetching data for Z Delhi NCR Haryana...
+2026-04-14 16:13:10 |     ✓ YouTube: 0.167
+2026-04-14 16:13:14 |     ✓ Instagram: 0.0902
+2026-04-14 16:13:20 |     ✓ Facebook: 0.246
+2026-04-14 16:13:25 | 
+ -> Fetching data for Z Malayalam News...
+2026-04-14 16:13:25 |     ✓ YouTube: 0.585
+2026-04-14 16:13:29 |     ✓ Instagram: 0.2433
+2026-04-14 16:13:35 |     ✓ Facebook: 0.585
+2026-04-14 16:13:41 | 
+ -> Fetching data for Z Kannada News...
+2026-04-14 16:13:41 |     ✓ YouTube: 0.809
+2026-04-14 16:13:45 |     ✓ Instagram: 0.8262
+2026-04-14 16:13:57 |     ✓ Facebook: 1.2
+2026-04-14 16:14:03 | 
+ -> Fetching data for Z 24 Ghanta (Bengali)...
+2026-04-14 16:14:04 |     ✓ YouTube: 7.16
+2026-04-14 16:14:08 |     ✓ Instagram: 0.2504
+2026-04-14 16:14:13 |     ✓ Facebook: 12.0
+2026-04-14 16:14:18 | 
+ -> Fetching data for Zee Cine Awards...
+2026-04-14 16:14:19 |     ✓ YouTube: 3.26
+2026-04-14 16:14:23 |     ✓ Instagram: 0.1516
+2026-04-14 16:14:29 |     ✓ Facebook: 0.664
+2026-04-14 16:14:35 | 
+ -> Fetching data for Z Movies Hindi...
+2026-04-14 16:14:35 |     ✓ YouTube: 4.02
+2026-04-14 16:14:35 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:14:35 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:14:42 | 
+ -> Fetching data for Z Movies Marathi...
+2026-04-14 16:14:42 |     ✓ YouTube: 0.227
+2026-04-14 16:14:42 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:14:42 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:14:48 | 
+ -> Fetching data for Z Movies Punjabi...
+2026-04-14 16:14:49 |     ⚠ YouTube Failed. Using historical fallback: Not Found
+2026-04-14 16:14:49 |     ⚠ Instagram Failed. Using historical fallback: Invalid URL
+2026-04-14 16:14:49 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:14:54 | 
+ -> Fetching data for Z Movies Tamil...
+2026-04-14 16:14:55 |     ✓ YouTube: 0.496
+2026-04-14 16:14:55 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:14:55 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:15:01 | 
+ -> Fetching data for Z Movies Telugu...
+2026-04-14 16:15:01 |     ✓ YouTube: 0.331
+2026-04-14 16:15:01 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:15:01 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:15:08 | 
+ -> Fetching data for Z Movies Bangla...
+2026-04-14 16:15:08 |     ✓ YouTube: 0.8
+2026-04-14 16:15:08 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:15:08 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:15:14 | 
+ -> Fetching data for Z Movies Kan...
+2026-04-14 16:15:14 |     ✓ YouTube: 0.154
+2026-04-14 16:15:14 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:15:14 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:15:21 | 
+ -> Fetching data for Z Movies Mal...
+2026-04-14 16:15:21 |     ✓ YouTube: 0.0726
+2026-04-14 16:15:21 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:15:21 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:15:27 | 
+ -> Fetching data for Z Movies Bhoj...
+2026-04-14 16:15:27 |     ✓ YouTube: 0.237
+2026-04-14 16:15:27 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:15:27 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:15:31 | 
+ -> Fetching data for Z Movies Odia...
+2026-04-14 16:15:32 |     ✓ YouTube: 0.0854
+2026-04-14 16:15:32 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:15:32 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:15:36 | 
+ -> Fetching data for Z Studios...
+2026-04-14 16:15:36 |     ✓ YouTube: 4.46
+2026-04-14 16:15:40 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:15:47 |     ✓ Facebook: 1.5
+2026-04-14 16:15:52 | 
+ -> Fetching data for Z Studios Marathi...
+2026-04-14 16:15:52 |     ✓ YouTube: 0.251
+2026-04-14 16:15:56 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:15:56 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:16:02 | 
+ -> Fetching data for Z Studios South...
+2026-04-14 16:16:02 |     ✓ YouTube: 0.0068
+2026-04-14 16:16:06 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:16:12 |     ✓ Facebook: 0.056
+2026-04-14 16:16:18 | 
+ -> Fetching data for Z Music...
+2026-04-14 16:16:18 |     ✓ YouTube: 122.0
+2026-04-14 16:16:22 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:16:28 |     ✓ Facebook: 20.0
+2026-04-14 16:16:34 | 
+ -> Fetching data for Z Music Chattisgarhi...
+2026-04-14 16:16:34 |     ✓ YouTube: 1.73
+2026-04-14 16:16:38 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:16:38 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:16:45 | 
+ -> Fetching data for Z Music Gujarati...
+2026-04-14 16:16:45 |     ✓ YouTube: 1.43
+2026-04-14 16:16:49 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:16:49 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:16:55 | 
+ -> Fetching data for Z Music Devotional...
+2026-04-14 16:16:55 |     ✓ YouTube: 0.909
+2026-04-14 16:16:59 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:16:59 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:17:05 | 
+ -> Fetching data for Z Music South...
+2026-04-14 16:17:05 |     ✓ YouTube: 6.61
+2026-04-14 16:17:09 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:17:09 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:17:14 | 
+ -> Fetching data for Z Music Bangla...
+2026-04-14 16:17:14 |     ✓ YouTube: 0.0069
+2026-04-14 16:17:18 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:17:18 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:17:22 | 
+ -> Fetching data for Z Music Bhojpuri...
+2026-04-14 16:17:22 |     ✓ YouTube: 8.36
+2026-04-14 16:17:27 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:17:27 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:17:32 | 
+ -> Fetching data for Z Music Odia...
+2026-04-14 16:17:32 |     ✓ YouTube: 0.784
+2026-04-14 16:17:36 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:17:36 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:17:41 | 
+ -> Fetching data for Z Music Marathi...
+2026-04-14 16:17:41 |     ✓ YouTube: 8.09
+2026-04-14 16:17:45 |     ⚠ Instagram Failed. Using historical fallback: Not Found
+2026-04-14 16:17:45 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:17:49 | 
+ -> Fetching data for Z Music Ibadat...
+2026-04-14 16:17:50 |     ✓ YouTube: 0.0633
+2026-04-14 16:17:50 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:17:50 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:17:56 | 
+ -> Fetching data for Z Music Classic...
+2026-04-14 16:17:56 |     ✓ YouTube: 20.4
+2026-04-14 16:17:56 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:17:56 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:18:02 | 
+ -> Fetching data for Z Music Rajasthani...
+2026-04-14 16:18:02 |     ✓ YouTube: 0.183
+2026-04-14 16:18:02 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:18:02 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:18:06 | 
+ -> Fetching data for Bollywood Mashup...
+2026-04-14 16:18:06 |     ✓ YouTube: 0.0427
+2026-04-14 16:18:06 |     ✓ Instagram: Skipped (0)
+2026-04-14 16:18:06 |     ✓ Facebook: Skipped (0)
+2026-04-14 16:18:07 | 
+Appending data to Google Sheets Data Log...
+2026-04-14 16:18:08 | Update complete! New macro historical data logged successfully.
