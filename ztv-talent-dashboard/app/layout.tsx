@@ -12,9 +12,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "Zee Talent Intelligence",
-  description: "Live social reach and engagement metrics for the Zee network talent roster.",
+export const metadata: Metadata = {
+  metadataBase: new URL("https://zee-dashboards.vercel.app/"),
+  title: "Zee Dashboards",
+  description: "Live social reach, engagement metrics, and network analytics for Zee Entertainment.",
   icons: {
     icon: [
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
@@ -25,16 +26,16 @@ export const metadata = {
     ],
   },
   openGraph: {
-    title: "Zee Talent Intelligence",
-    description: "Real-time Instagram extensions & engagement analytics for Zee talent.",
-    url: "https://ztv-ig-tracker.vercel.app/",
+    title: "Zee Dashboards",
+    description: "Real-time tracking and performance analytics for Zee Network and Talent.",
+    url: "https://zee-dashboards.vercel.app/",
     siteName: "Zee Entertainment",
     images: [
       {
         url: "/og-image.jpg", // We will create this in the next step
         width: 1200,
         height: 630,
-        alt: "Zee Talent Intelligence Dashboard Preview",
+        alt: "Zee Dashboards Preview",
       },
     ],
     locale: "en_GB",
