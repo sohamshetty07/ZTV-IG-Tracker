@@ -147,3 +147,66 @@ export async function getLastSyncDate() {
     return (error.message || 'API Error').substring(0, 18);
   }
 }
+
+// 5. Macro Dashboard Data Fetching (Network Overview)
+export async function getMacroData() {
+  try {
+    await doc.loadInfo(); 
+
+    // Connect to the specific Macro tabs
+    const urlsSheet = doc.sheetsByTitle['Master_URLs'];
+    const logSheet = doc.sheetsByTitle['Macro_Data_Log'];
+
+    if (!urlsSheet || !logSheet) return [];
+
+    const urlRows = await urlsSheet.getRows();
+    const logRows = await logSheet.getRows();
+
+    // Create a map to hold the most recent data for each channel
+    const latestMacroMetrics = new Map();
+
+    // Loop through the log. Because it goes top to bottom, the last entry for a channel is the freshest.
+    logRows.forEach((row) => {
+      const channelName = row.get('Channel Name');
+      if (channelName) {
+        // Normalise the strings to numbers for maths later
+        const parseMetric = (val: string) => parseFloat(val?.replace(/,/g, '') || '0') || 0;
+        
+        latestMacroMetrics.set(channelName, {
+          fb: parseMetric(row.get('FB Followers')),
+          ig: parseMetric(row.get('IG Followers')),
+          yt: parseMetric(row.get('YT Subscribers')),
+          lastUpdated: row.get('Date') || '-',
+        });
+      }
+    });
+
+    // Merge the URL metadata with the freshest metrics
+    const macroData = urlRows.map((row) => {
+      const channelName = row.get('Channel Name');
+      const metrics = latestMacroMetrics.get(channelName) || { fb: 0, ig: 0, yt: 0, lastUpdated: '-' };
+      
+      // Calculate Total Footprint automatically
+      const totalAudience = metrics.fb + metrics.ig + metrics.yt;
+
+      return {
+        id: channelName,
+        channelName: channelName,
+        category: row.get('Category') || 'Uncategorised',
+        status: row.get('Status') || 'Active',
+        networkType: 'Zee', // FUTURE-PROOFING: When competitors are added, they will be tagged 'Competitor' here
+        metrics: {
+          ...metrics,
+          total: totalAudience
+        }
+      };
+    });
+
+    // Filter out inactive channels
+    return macroData.filter(channel => channel.status.toLowerCase() === 'active');
+
+  } catch (error) {
+    console.error('Error fetching Macro Data:', error);
+    return [];
+  }
+}
