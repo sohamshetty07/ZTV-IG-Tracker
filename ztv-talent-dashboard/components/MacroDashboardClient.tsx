@@ -351,12 +351,12 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
                               <>
                                 <div className="flex text-[9px] font-bold mb-1 w-full relative h-3">
                                   {fbPct >= 5 && <span style={{ width: `${fbPct}%` }} className="text-blue-500 absolute left-0 text-left">{fbPct.toFixed(0)}%</span>}
-                                  {igPct >= 5 && <span style={{ left: `${fbPct}%`, width: `${igPct}%` }} className="text-pink-500 absolute text-center">{igPct.toFixed(0)}%</span>}
+                                  {igPct >= 5 && <span style={{ left: `${fbPct}%`, width: `${igPct}%` }} className="text-yellow-500 absolute text-center">{igPct.toFixed(0)}%</span>}
                                   {ytPct >= 5 && <span style={{ width: `${ytPct}%` }} className="text-red-500 absolute right-0 text-right">{ytPct.toFixed(0)}%</span>}
                                 </div>
                                 <div className="flex w-full h-2 rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                                   <div style={{ width: `${fbPct}%` }} className="bg-blue-500 h-full transition-all"></div>
-                                  <div style={{ width: `${igPct}%` }} className="bg-pink-500 h-full transition-all"></div>
+                                  <div style={{ width: `${igPct}%` }} className="bg-yellow-500 h-full transition-all"></div>
                                   <div style={{ width: `${ytPct}%` }} className="bg-red-500 h-full transition-all"></div>
                                 </div>
                               </>
@@ -386,7 +386,7 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
               </div>
               <div className="flex items-center justify-end space-x-4 font-bold text-[10px] uppercase tracking-wider">
                 <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-1.5"></span> Facebook</span>
-                <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-pink-500 mr-1.5"></span> Instagram</span>
+                <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500 mr-1.5"></span> Instagram</span>
                 <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-red-500 mr-1.5"></span> YouTube</span>
               </div>
             </div>
