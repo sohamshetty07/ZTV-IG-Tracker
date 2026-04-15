@@ -27,7 +27,7 @@ const serviceAccountAuth = new JWT({
 
 const doc = new GoogleSpreadsheet(process.env.GOOGLE_SPREADSHEET_ID!, serviceAccountAuth);
 
-// 2. Utility: URL Normaliser to extract just the handle (e.g., 'shraddhaarya')
+// 2. Utility: URL Normaliser to extract just the handle
 function normalizeHandle(url: string | undefined): string {
   if (!url) return '';
   const match = url.match(/instagram\.com\/([^/?#]+)/i);
@@ -190,11 +190,13 @@ export async function getMacroData() {
     await doc.loadInfo(); 
 
     const urlsSheet = doc.sheetsByTitle['Master_URLs'];
+    const compUrlsSheet = doc.sheetsByTitle['Competitor_URLs']; // NEW: Fetch Competitor Sheet
     const logSheet = doc.sheetsByTitle['Macro_Data_Log'];
 
     if (!urlsSheet || !logSheet) return [];
 
     const urlRows = await urlsSheet.getRows();
+    const compUrlRows = compUrlsSheet ? await compUrlsSheet.getRows() : []; // Safe fallback
     const logRows = await logSheet.getRows();
 
     const latestMacroMetrics = new Map();
@@ -215,49 +217,54 @@ export async function getMacroData() {
 
     const uniqueChannels = new Map();
 
-    urlRows.forEach((row) => {
-      const channelName = (row.get('Channel Name') || '').trim();
-      const status = (row.get('Status') || '').trim().toLowerCase();
-      
-      if (!channelName || status !== 'active') return;
-
-      const normalizedName = channelName.toLowerCase();
-
-      if (!uniqueChannels.has(normalizedName)) {
-        const metrics = latestMacroMetrics.get(normalizedName) || { fb: 0, ig: 0, yt: 0, lastUpdated: '-' };
-        const totalAudience = metrics.fb + metrics.ig + metrics.yt;
-
-        let category = (row.get('Category') || '').trim();
-        if (!category) category = 'Uncategorised';
-
-        // NEW: Fetch and format the social URLs
-        const fbUrl = row.get('Facebook URL')?.trim() || '-';
-        const igUrl = row.get('Instagram URL')?.trim() || '-';
-        let ytId = row.get('YouTube Channel ID')?.trim() || '-';
+    // Helper function to process rows to avoid code duplication
+    const processRows = (rows: any[], networkType: 'Zee' | 'Competitor') => {
+      rows.forEach((row) => {
+        const channelName = (row.get('Channel Name') || '').trim();
+        const status = (row.get('Status') || '').trim().toLowerCase();
         
-        // Format YouTube ID into a full URL if it isn't one already
-        if (ytId !== '-' && !ytId.includes('youtube.com')) {
-          ytId = ytId.startsWith('@') ? `https://www.youtube.com/${ytId}` : `https://www.youtube.com/channel/${ytId}`;
-        }
+        if (!channelName || status !== 'active') return;
 
-        uniqueChannels.set(normalizedName, {
-          id: channelName,
-          channelName: channelName,
-          category: category,
-          status: 'Active',
-          networkType: 'Zee',
-          urls: {
-            facebook: fbUrl,
-            instagram: igUrl,
-            youtube: ytId
-          },
-          metrics: {
-            ...metrics,
-            total: totalAudience
+        const normalizedName = channelName.toLowerCase();
+
+        if (!uniqueChannels.has(normalizedName)) {
+          const metrics = latestMacroMetrics.get(normalizedName) || { fb: 0, ig: 0, yt: 0, lastUpdated: '-' };
+          const totalAudience = metrics.fb + metrics.ig + metrics.yt;
+
+          let category = (row.get('Category') || '').trim();
+          if (!category) category = 'Uncategorised';
+
+          const fbUrl = row.get('Facebook URL')?.trim() || '-';
+          const igUrl = row.get('Instagram URL')?.trim() || '-';
+          let ytId = row.get('YouTube Channel ID')?.trim() || '-';
+          
+          if (ytId !== '-' && !ytId.includes('youtube.com')) {
+            ytId = ytId.startsWith('@') ? `https://www.youtube.com/${ytId}` : `https://www.youtube.com/channel/${ytId}`;
           }
-        });
-      }
-    });
+
+          uniqueChannels.set(normalizedName, {
+            id: channelName,
+            channelName: channelName,
+            category: category,
+            status: 'Active',
+            networkType: networkType, // Attach the dynamic tag here
+            urls: {
+              facebook: fbUrl,
+              instagram: igUrl,
+              youtube: ytId
+            },
+            metrics: {
+              ...metrics,
+              total: totalAudience
+            }
+          });
+        }
+      });
+    };
+
+    // Process Zee Channels First, then Competitors
+    processRows(urlRows, 'Zee');
+    processRows(compUrlRows, 'Competitor');
 
     const finalData = Array.from(uniqueChannels.values());
 

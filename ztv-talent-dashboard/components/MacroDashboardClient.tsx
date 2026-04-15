@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Moon, Sun, Clock, Filter, PanelLeftClose, PanelLeftOpen, ChevronDown, ChevronUp, Download, Globe, Users, Check } from 'lucide-react';
+import { Search, Moon, Sun, Clock, Filter, PanelLeftClose, PanelLeftOpen, ChevronDown, ChevronUp, Download, Globe, Users, Check, BarChart2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as XLSX from 'xlsx';
 
@@ -14,14 +14,15 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'total' | 'fb' | 'ig' | 'yt'>('total');
   
+  // NEW: Competitive Landscape Toggle
+  const [showCompetitors, setShowCompetitors] = useState(false);
+  
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Accordion State
   const [isCategoryOpen, setIsCategoryOpen] = useState(true);
   const [isChannelOpen, setIsChannelOpen] = useState(true);
-
-  // Workspace Switcher State
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   useEffect(() => {
@@ -44,23 +45,29 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     }
   }, [isDarkMode]);
 
-  const uniqueCategories = useMemo(() => {
-    return Array.from(new Set(initialData.map(ch => ch.category))).sort();
-  }, [initialData]);
+  // THE DATA LENS: Filters out competitors completely if toggle is off
+  const baseChannels = useMemo(() => {
+    return initialData.filter(ch => showCompetitors || ch.networkType === 'Zee');
+  }, [initialData, showCompetitors]);
 
-  const uniqueChannels = useMemo(() => {
+  const uniqueCategories = useMemo(() => {
+    return Array.from(new Set(baseChannels.map(ch => ch.category))).sort();
+  }, [baseChannels]);
+
+  const uniqueChannelsList = useMemo(() => {
     const filteredForChannels = selectedCategories.length > 0 
-      ? initialData.filter(ch => selectedCategories.includes(ch.category))
-      : initialData;
+      ? baseChannels.filter(ch => selectedCategories.includes(ch.category))
+      : baseChannels;
     return Array.from(new Set(filteredForChannels.map(ch => ch.channelName))).sort();
-  }, [initialData, selectedCategories]);
+  }, [baseChannels, selectedCategories]);
 
   const toggleFilter = (item: string, currentList: string[], setList: React.Dispatch<React.SetStateAction<string[]>>) => {
     setList(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
 
+  // DYNAMIC FILTERING & TWO-TIER ZEE-FIRST SORTING
   const processedData = useMemo(() => {
-    let filtered = initialData.filter(channel => {
+    let filtered = baseChannels.filter(channel => {
       const matchesSearch = channel.channelName.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(channel.category);
       const matchesChannel = selectedChannels.length === 0 || selectedChannels.includes(channel.channelName);
@@ -69,11 +76,18 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     });
 
     return filtered.sort((a, b) => {
+      // Tier 1: Network Alignment (Zee always on top if competitors are shown)
+      if (showCompetitors) {
+        if (a.networkType === 'Zee' && b.networkType !== 'Zee') return -1;
+        if (a.networkType !== 'Zee' && b.networkType === 'Zee') return 1;
+      }
+      
+      // Tier 2: Selected Metric
       const aVal = a.metrics[sortBy] || 0;
       const bVal = b.metrics[sortBy] || 0;
       return bVal - aVal;
     });
-  }, [initialData, searchQuery, selectedCategories, selectedChannels, sortBy]);
+  }, [baseChannels, searchQuery, selectedCategories, selectedChannels, sortBy, showCompetitors]);
 
   const summaryMetrics = useMemo(() => {
     const total = processedData.reduce((sum, ch) => sum + (ch.metrics.total || 0), 0);
@@ -83,11 +97,11 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     };
   }, [processedData]);
 
-  // ENTERPRISE EXPORT ENGINE (With Dynamic Naming & Link Appending)
+  // UPGRADED EXPORT ENGINE (Competitor Logic & Appended Links)
   const exportToExcel = () => {
-    // 1. Data Sheet (Math applied to convert back to raw numbers, URL Links Appended)
     const dataRows = processedData.map(channel => ({
       "Channel Identity": channel.channelName,
+      "Network Alignment": channel.networkType === 'Zee' ? 'Zee Entertainment' : 'Competitor',
       "Segment": channel.category,
       "Facebook Reach": Math.round((channel.metrics.fb || 0) * 1000000),
       "Instagram Reach": Math.round((channel.metrics.ig || 0) * 1000000),
@@ -99,10 +113,10 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     }));
     const dataSheet = XLSX.utils.json_to_sheet(dataRows);
 
-    // 2. Metadata & Filters Sheet
     const metadataRows = [
       { "Configuration": "Export Date", "Value": new Date().toLocaleString('en-GB') },
       { "Configuration": "Data Last Synchronised", "Value": lastSync },
+      { "Configuration": "Market Landscape Active", "Value": showCompetitors ? "Yes" : "No" },
       { "Configuration": "Search Query Applied", "Value": searchQuery || "None" },
       { "Configuration": "Segments Filtered", "Value": selectedCategories.length > 0 ? selectedCategories.join(', ') : "All Categories" },
       { "Configuration": "Channels Filtered", "Value": selectedChannels.length > 0 ? selectedChannels.join(', ') : "All Channels" },
@@ -110,29 +124,29 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     ];
     const metaSheet = XLSX.utils.json_to_sheet(metadataRows);
 
-    // 3. Create Workbook
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, dataSheet, "Network Data");
     XLSX.utils.book_append_sheet(wb, metaSheet, "Report Metadata");
 
-    // 4. Dynamic Naming Engine
+    // Dynamic Naming Engine
     const today = new Date();
     const day = today.getDate();
     const month = today.toLocaleString('en-GB', { month: 'short' });
-    const dateStr = `${day}${month}`; // Result: "15Apr"
+    const dateStr = `${day}${month}`; // e.g., "15Apr"
 
+    const prefix = showCompetitors ? "Zee_Competitive_Landscape" : "Zee_Network";
+    
     let scopeStr = "Overview";
     if (selectedCategories.length === 1) {
-      scopeStr = selectedCategories[0].replace(/[^a-zA-Z0-9]/g, ''); // E.g., "TV" or "News"
+      scopeStr = selectedCategories[0].replace(/[^a-zA-Z0-9]/g, '');
     } else if (selectedCategories.length > 1) {
       scopeStr = "MultiSegment";
     } else if (selectedChannels.length > 0) {
       scopeStr = "Custom";
     }
 
-    const fileName = `Zee_Network_${scopeStr}_${dateStr}.xlsx`;
+    const fileName = `${prefix}_${scopeStr}_${dateStr}.xlsx`;
 
-    // 5. Download
     XLSX.writeFile(wb, fileName);
   };
 
@@ -158,17 +172,14 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
             </div>
           </button>
 
-          {/* DROPDOWN MENU */}
           {isSwitcherOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setIsSwitcherOpen(false)}></div>
               <div className="absolute top-16 left-4 w-56 bg-white dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-200">
                 <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest px-4 py-2">Workspaces</p>
-                
                 <button onClick={() => { router.push('/'); setIsSwitcherOpen(false); }} className="w-full flex items-center px-4 py-2.5 text-sm font-medium hover:bg-neutral-50 dark:hover:bg-neutral-900 text-neutral-600 dark:text-neutral-400 transition-colors">
                   <Users className="w-4 h-4 mr-3 text-neutral-500" /> Talent
                 </button>
-                
                 <button onClick={() => { setIsSwitcherOpen(false); }} className="w-full flex items-center px-4 py-2.5 text-sm font-medium bg-neutral-50 dark:bg-[#222] text-black dark:text-white transition-colors">
                   <Globe className="w-4 h-4 mr-3 text-neutral-500" /> Network
                   <Check className="w-3 h-3 ml-auto text-black dark:text-white"/>
@@ -187,7 +198,7 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
             )}
           </div>
             
-          {/* ACCORDION 1: CATEGORY / SEGMENT */}
+          {/* ACCORDION 1: SEGMENT */}
           <div className="mb-4 border-b border-neutral-100 dark:border-neutral-900/50 pb-4">
             <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsCategoryOpen(!isCategoryOpen)}>
               <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Segment</label>
@@ -209,8 +220,8 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
             )}
           </div>
 
-          {/* ACCORDION 2: CHANNEL COMPARISON */}
-          <div className="mb-4">
+          {/* ACCORDION 2: CHANNELS */}
+          <div className="mb-6 border-b border-neutral-100 dark:border-neutral-900/50 pb-6">
             <div className="flex items-center justify-between cursor-pointer group" onClick={() => setIsChannelOpen(!isChannelOpen)}>
               <label className="text-xs uppercase tracking-wider font-bold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors cursor-pointer">Compare Channels</label>
               <div className="flex items-center space-x-3">
@@ -221,7 +232,7 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
             
             {isChannelOpen && (
               <div className="mt-3 max-h-60 overflow-y-auto space-y-2.5 pr-2">
-                {uniqueChannels.map(channel => (
+                {uniqueChannelsList.map(channel => (
                   <label key={channel} className="flex items-center space-x-3 group cursor-pointer">
                     <input type="checkbox" checked={selectedChannels.includes(channel)} onChange={() => toggleFilter(channel, selectedChannels, setSelectedChannels)} className="w-4 h-4 rounded border-neutral-300 text-black dark:text-white focus:ring-black dark:focus:ring-white dark:border-neutral-700 dark:bg-neutral-900 cursor-pointer" />
                     <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors line-clamp-1" title={channel}>{channel}</span>
@@ -230,13 +241,31 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
               </div>
             )}
           </div>
+
+          {/* MARKET LANDSCAPE TOGGLE */}
+          <div className="mb-6 mt-auto">
+            <label className="block text-[10px] uppercase tracking-widest font-bold text-neutral-400 mb-3">Viewing Mode</label>
+            <button
+              onClick={() => setShowCompetitors(!showCompetitors)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all border ${showCompetitors ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/50 text-blue-700 dark:text-blue-400' : 'bg-neutral-100 dark:bg-[#111] border-transparent text-neutral-500'}`}
+            >
+              <span className="text-sm font-bold flex items-center">
+                <BarChart2 className="w-4 h-4 mr-2" />
+                Market Landscape
+              </span>
+              <div className={`w-8 h-4 rounded-full flex items-center px-0.5 transition-colors ${showCompetitors ? 'bg-blue-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}>
+                <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-transform ${showCompetitors ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+            </button>
+            <p className="text-[9px] text-neutral-400 mt-2 px-1 leading-tight">Include competitor channels and benchmark market performance.</p>
+          </div>
+
         </div>
       </aside>
 
       {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         
-        {/* HEADER */}
         <header className="h-20 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-neutral-200/50 dark:border-neutral-900 flex items-center justify-between px-6 lg:px-8 z-10 shrink-0">
           <div className="flex items-center w-full max-w-xl">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 mr-4 text-neutral-400 hover:text-black dark:hover:text-white transition-colors">
@@ -260,7 +289,6 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
               </div>
             </div>
 
-            {/* Export Button */}
             <button onClick={exportToExcel} className="hidden sm:flex items-center px-4 py-2 text-sm font-bold bg-black dark:bg-white text-white dark:text-black rounded-full hover:scale-105 transition-transform shadow-sm">
               <Download className="w-4 h-4 mr-2"/> Export
             </button>
@@ -271,14 +299,13 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
           </div>
         </header>
 
-        {/* HIGH DENSITY TABLE */}
         <main className="flex-1 flex flex-col min-h-0 p-4 lg:p-6 bg-neutral-50 dark:bg-black">
           <div className="bg-white dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-900 rounded-2xl shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden relative">
             <div className="overflow-auto custom-scrollbar flex-1">
               <table className="w-full text-sm text-left text-neutral-600 dark:text-neutral-400">
-                <thead className="text-xs font-black text-black dark:text-white uppercase tracking-widest bg-neutral-50 dark:bg-[#111] border-b border-neutral-200 dark:border-neutral-900 whitespace-nowrap sticky top-0 z-20 shadow-sm">
+                <thead className="text-[11px] font-black text-black dark:text-white uppercase tracking-widest bg-neutral-50 dark:bg-[#111] border-b border-neutral-200 dark:border-neutral-900 whitespace-nowrap sticky top-0 z-20 shadow-sm">
                   <tr>
-                    <th className="px-6 py-5 min-w-[200px]">Channel Identity</th>
+                    <th className="px-6 py-5 min-w-[240px]">Channel Identity</th>
                     <th className="px-6 py-5 min-w-[120px]">Segment</th>
                     <th className="px-6 py-5 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors min-w-[100px]" onClick={() => setSortBy('fb')}>Facebook</th>
                     <th className="px-6 py-5 text-right cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors min-w-[100px]" onClick={() => setSortBy('ig')}>Instagram</th>
@@ -293,22 +320,32 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
                     const fbPct = total > 0 ? ((channel.metrics.fb || 0) / total) * 100 : 0;
                     const igPct = total > 0 ? ((channel.metrics.ig || 0) / total) * 100 : 0;
                     const ytPct = total > 0 ? ((channel.metrics.yt || 0) / total) * 100 : 0;
+                    const isZee = channel.networkType === 'Zee';
 
                     return (
-                      <tr key={i} className="border-b border-neutral-100 dark:border-neutral-900/50 hover:bg-neutral-50 dark:hover:bg-[#111] transition-colors whitespace-nowrap">
-                        <td className="px-6 py-3 font-bold text-black dark:text-white">{channel.channelName}</td>
+                      <tr key={i} className={`border-b hover:bg-neutral-50 dark:hover:bg-[#111] transition-colors whitespace-nowrap ${isZee ? 'border-neutral-100 dark:border-neutral-900/50' : 'border-neutral-100 dark:border-neutral-900/50 bg-neutral-50/60 dark:bg-[#111]/30'}`}>
                         <td className="px-6 py-3">
-                          <span className="px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
+                          <div className="flex items-center">
+                            {isZee ? (
+                              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-black dark:bg-white text-white dark:text-black text-[10px] font-black mr-3 shrink-0">Z</span>
+                            ) : (
+                              <span className="inline-flex items-center justify-center w-5 h-5 rounded border border-neutral-300 dark:border-neutral-700 text-neutral-400 dark:text-neutral-500 text-[9px] font-bold mr-3 shrink-0" title="Competitor">C</span>
+                            )}
+                            <span className={`font-bold ${isZee ? 'text-black dark:text-white' : 'text-neutral-500 dark:text-neutral-400'}`}>{channel.channelName}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold ${isZee ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500' : 'border border-neutral-200 dark:border-neutral-800 text-neutral-400'}`}>
                             {channel.category}
                           </span>
                         </td>
-                        <td className="px-6 py-3 text-right font-medium">{(channel.metrics.fb || 0).toFixed(2)} M</td>
-                        <td className="px-6 py-3 text-right font-medium">{(channel.metrics.ig || 0).toFixed(2)} M</td>
-                        <td className="px-6 py-3 text-right font-medium">{(channel.metrics.yt || 0).toFixed(2)} M</td>
-                        <td className="px-6 py-3 text-right font-black text-blue-600 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-900/10">
+                        <td className={`px-6 py-3 text-right font-medium ${isZee ? '' : 'opacity-70'}`}>{(channel.metrics.fb || 0).toFixed(2)} M</td>
+                        <td className={`px-6 py-3 text-right font-medium ${isZee ? '' : 'opacity-70'}`}>{(channel.metrics.ig || 0).toFixed(2)} M</td>
+                        <td className={`px-6 py-3 text-right font-medium ${isZee ? '' : 'opacity-70'}`}>{(channel.metrics.yt || 0).toFixed(2)} M</td>
+                        <td className={`px-6 py-3 text-right font-black ${isZee ? 'text-blue-600 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-900/10' : 'text-neutral-500 dark:text-neutral-400 bg-neutral-100/50 dark:bg-neutral-900/30'}`}>
                           {total.toFixed(2)} M
                         </td>
-                        <td className="px-6 py-3">
+                        <td className={`px-6 py-3 ${isZee ? '' : 'opacity-60'}`}>
                           <div className="w-full flex flex-col justify-center">
                             {total > 0 ? (
                               <>
