@@ -62,7 +62,6 @@ def format_macro_count(count):
         return 0
     try:
         num = int(count)
-        # Convert directly to millions and round to 4 decimal places
         return round(num / 1_000_000, 4)
     except Exception:
         return str(count)
@@ -76,7 +75,12 @@ try:
     client = gspread.authorize(CREDS)
 
     SPREADSHEET_NAME = "All Genre-Social Presence + Influencers" 
+    
+    # NEW: Connecting to both URL sheets
     roster_sheet = client.open(SPREADSHEET_NAME).worksheet("Master_URLs")
+    competitor_sheet = client.open(SPREADSHEET_NAME).worksheet("Competitor_URLs")
+    
+    # We dump ALL data into the same log to optimize the Next.js backend
     log_sheet = client.open(SPREADSHEET_NAME).worksheet("Macro_Data_Log")
 except Exception as e:
     logger.error(f"CRITICAL: Failed to authenticate with Google Sheets. Check credentials.json. Error: {e}")
@@ -90,10 +94,8 @@ def get_youtube_subs(channel_identifier):
     channel_identifier = str(channel_identifier).strip()
     
     try:
-        # If you entered an @handle, use the 'forHandle' API parameter
         if channel_identifier.startswith('@'):
             request = youtube.channels().list(part="statistics", forHandle=channel_identifier)
-        # Otherwise, assume it's a raw UC... Channel ID
         else:
             request = youtube.channels().list(part="statistics", id=channel_identifier)
             
@@ -131,12 +133,9 @@ async def get_facebook_followers(page, url):
     if not url or "facebook.com" not in url: return "Invalid URL"
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=20000)
-        await page.wait_for_timeout(4000) # FB can be slow to render
+        await page.wait_for_timeout(4000) 
         
-        # More robust text locator that ignores case and checks the entire body
         body_text = await page.locator("body").inner_text()
-        
-        # Looks for patterns like "40M followers" or "3.9M Followers"
         match = re.search(r'([\d.,]+[KM]?)\s+followers', body_text, re.IGNORECASE)
         
         if match:
@@ -159,7 +158,6 @@ async def main():
         logger.error("Persistent profile folder 'ig_profile' not found! Run setup_auth.py first.")
         return
 
-    # --- HISTORICAL DATA MEMORY ---
     logger.info("Caching historical data to use as a fallback for scrape errors...")
     log_records = log_sheet.get_all_records()
     last_known_data = {}
@@ -172,26 +170,30 @@ async def main():
                 'YT': row.get('YT Subscribers', 0)
             }
 
-    records = roster_sheet.get_all_records()
+    # NEW: Fetching and combining both sheets
+    logger.info("Fetching Zee URLs and Competitor URLs...")
+    zee_records = roster_sheet.get_all_records()
+    comp_records = competitor_sheet.get_all_records()
+    combined_records = zee_records + comp_records
+    
     rows_to_append = []
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     # --- SELECTIVE TARGETING LOGIC ---
-    target_records = [r for r in records if str(r.get("Status", "")).strip().lower() == 'target']
+    target_records = [r for r in combined_records if str(r.get("Status", "")).strip().lower() == 'target']
     
     if len(target_records) > 0:
         active_records = target_records
-        logger.info(f"Target Mode Activated: Found {len(active_records)} channels marked 'Target'. Skipping everything else.")
+        logger.info(f"Target Mode Activated: Found {len(active_records)} channels marked 'Target' across both sheets. Skipping everything else.")
     else:
-        active_records = [r for r in records if str(r.get("Status", "")).strip().lower() == 'active']
-        logger.info(f"Standard Mode: Processing {len(active_records)} active channels.")
+        active_records = [r for r in combined_records if str(r.get("Status", "")).strip().lower() == 'active']
+        logger.info(f"Standard Mode: Processing {len(active_records)} total active channels.")
 
     if len(active_records) == 0:
         logger.info("No channels found to process. Exiting.")
         return
     
     async with async_playwright() as p:
-        # Reusing your existing IG profile footprint to bypass Meta walls
         context = await p.chromium.launch_persistent_context(
             user_data_dir="./ig_profile",
             headless=IS_CRON_JOB, 
@@ -209,7 +211,7 @@ async def main():
             logger.info(f"\n -> Fetching data for {channel_name}...")
             has_error = False
             
-            # 1. YouTube (API - Instant)
+            # 1. YouTube
             if yt_id == "-":
                 yt_subs = 0
                 logger.info("    ✓ YouTube: Skipped (0)")
@@ -222,7 +224,7 @@ async def main():
                 else:
                     logger.info(f"    ✓ YouTube: {yt_subs}")
             
-            # 2. Instagram (Playwright)
+            # 2. Instagram
             if ig_url == "-":
                 ig_followers = 0
                 logger.info("    ✓ Instagram: Skipped (0)")
@@ -235,7 +237,7 @@ async def main():
                 else:
                     logger.info(f"    ✓ Instagram: {ig_followers}")
             
-            # 3. Facebook (Playwright)
+            # 3. Facebook
             if fb_url == "-":
                 fb_followers = 0
                 logger.info("    ✓ Facebook: Skipped (0)")
@@ -254,21 +256,19 @@ async def main():
                 current_time, channel_name, fb_followers, ig_followers, yt_subs, status
             ])
             
-            # Anti-ban delay between different channels
             if index < len(active_records) - 1:
                 sleep_time = random.uniform(4.0, 7.0)
                 await asyncio.sleep(sleep_time)
                 
         await context.close()
         
-    logger.info("\nAppending data to Google Sheets Data Log...")
+    logger.info("\nAppending combined data to Macro_Data_Log...")
     max_retries = 3
     for attempt in range(max_retries):
         try:
             log_sheet.append_rows(rows_to_append)
             logger.info("Update complete! New macro historical data logged successfully.")
             
-            # Note to user about targets
             if len(target_records) > 0:
                 logger.info("Note: Please remember to change your 'Target' statuses back to 'Active' in your sheet for the next full run.")
             

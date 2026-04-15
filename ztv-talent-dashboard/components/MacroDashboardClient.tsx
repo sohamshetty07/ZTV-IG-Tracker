@@ -36,12 +36,24 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
 
   useEffect(() => {
     const root = document.documentElement;
+    
+    // 1. Find or create the browser's theme-color meta tag
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement('meta');
+      metaThemeColor.setAttribute('name', 'theme-color');
+      document.head.appendChild(metaThemeColor);
+    }
+
+    // 2. Apply theme and sync browser top-bar colour
     if (isDarkMode) {
       root.classList.add('dark');
       localStorage.setItem('theme', 'dark');
+      metaThemeColor.setAttribute('content', '#000000'); // Matches your dark:bg-black
     } else {
       root.classList.remove('dark');
       localStorage.setItem('theme', 'light');
+      metaThemeColor.setAttribute('content', '#fafafa'); // Matches your bg-neutral-50
     }
   }, [isDarkMode]);
 
