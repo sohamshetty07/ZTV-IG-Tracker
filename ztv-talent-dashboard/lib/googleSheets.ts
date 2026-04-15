@@ -1,6 +1,23 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 
+// --- LOCAL DEV CACHE BYPASS TO PREVENT 429 ERRORS ---
+const globalCache = globalThis as unknown as {
+  sheetCache: {
+    talent: { data: any, time: number } | null,
+    network: { data: any, time: number } | null,
+    talentSync: { data: string, time: number } | null,
+    networkSync: { data: string, time: number } | null
+  }
+};
+
+if (!globalCache.sheetCache) {
+  globalCache.sheetCache = { talent: null, network: null, talentSync: null, networkSync: null };
+}
+
+const CACHE_TTL = 60 * 1000; // 60 seconds memory cache
+// ----------------------------------------------------
+
 // 1. Initialise the Google Auth Client
 const serviceAccountAuth = new JWT({
   email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -17,63 +34,81 @@ function normalizeHandle(url: string | undefined): string {
   return match ? match[1].toLowerCase().trim() : '';
 }
 
-// 3. Main Data Fetching Function
+// 3. Main Data Fetching Function (Talent Dashboard)
 export async function getDashboardData() {
-  await doc.loadInfo(); 
+  // Check local cache first to save Google API Quota
+  if (process.env.NODE_ENV === 'development' && globalCache.sheetCache.talent && (Date.now() - globalCache.sheetCache.talent.time < CACHE_TTL)) {
+    console.log('⚡ Serving Talent data from local cache to save API quota...');
+    return globalCache.sheetCache.talent.data;
+  }
 
-  const rosterSheet = doc.sheetsByTitle['Master_Roster'];
-  const logSheet = doc.sheetsByTitle['Data_Log'];
+  try {
+    await doc.loadInfo(); 
 
-  const rosterRows = await rosterSheet.getRows();
-  const logRows = await logSheet.getRows();
+    const rosterSheet = doc.sheetsByTitle['Master_Roster'];
+    const logSheet = doc.sheetsByTitle['Data_Log'];
 
-  // Create a map of the latest scrape data for each actor
-  // By looping through the log, the last entry for a handle overwrites previous ones, giving us the freshest data.
-  const latestMetrics = new Map();
-  
-  logRows.forEach((row) => {
-    const rawUrl = row.get('Instagram URL');
-    const handle = normalizeHandle(rawUrl);
+    const rosterRows = await rosterSheet.getRows();
+    const logRows = await logSheet.getRows();
+
+    const latestMetrics = new Map();
     
-    if (handle) {
-      latestMetrics.set(handle, {
-        exactFollowers: row.get('Exact Followers') || 0,
-        formattedFollowers: row.get('Formatted Followers') || '-',
-        // NEW: Pulling the missing metrics directly from the column headers
-        avgPhotoLikes: row.get('Avg Photo Likes') || '-',
-        avgReelViews: row.get('Avg Reel Views') || '-',
-        avgComments: row.get('Avg Comments') || '-',
-        viewRate: row.get('Reel View Rate %') || '-',
-        lastUpdated: row.get('Date') || '-',
-      });
+    logRows.forEach((row) => {
+      const rawUrl = row.get('Instagram URL');
+      const handle = normalizeHandle(rawUrl);
+      
+      if (handle) {
+        latestMetrics.set(handle, {
+          exactFollowers: row.get('Exact Followers') || 0,
+          formattedFollowers: row.get('Formatted Followers') || '-',
+          avgPhotoLikes: row.get('Avg Photo Likes') || '-',
+          avgReelViews: row.get('Avg Reel Views') || '-',
+          avgComments: row.get('Avg Comments') || '-',
+          viewRate: row.get('Reel View Rate %') || '-',
+          lastUpdated: row.get('Date') || '-',
+        });
+      }
+    });
+
+    const combinedData = rosterRows.map((row) => {
+      const handle = normalizeHandle(row.get('Instagram URL'));
+      const metrics = latestMetrics.get(handle) || null;
+
+      return {
+        handle: handle,
+        realName: row.get('Real Name') || 'Unknown',
+        reelName: row.get('Reel Name') || '-',
+        channel: row.get('Channel') || '-',
+        showName: row.get('Show Name') || '-',
+        timeSlot: row.get('Time Slot') || '-',
+        gender: row.get('Gender') || '-',
+        headshotUrl: row.get('Headshot URL') || null,
+        status: row.get('Status') || 'Active',
+        metrics: metrics,
+      };
+    });
+
+    const finalData = combinedData.filter((actor) => actor.status.toLowerCase() !== 'inactive');
+
+    // Save to cache
+    if (process.env.NODE_ENV === 'development') {
+      globalCache.sheetCache.talent = { data: finalData, time: Date.now() };
     }
-  });
 
-  // Merge the Roster metadata with the Latest Metrics
-  const combinedData = rosterRows.map((row) => {
-    const handle = normalizeHandle(row.get('Instagram URL'));
-    const metrics = latestMetrics.get(handle) || null;
+    return finalData;
 
-    return {
-      handle: handle,
-      realName: row.get('Real Name') || 'Unknown',
-      reelName: row.get('Reel Name') || '-',
-      channel: row.get('Channel') || '-',
-      showName: row.get('Show Name') || '-',
-      timeSlot: row.get('Time Slot') || '-',
-      gender: row.get('Gender') || '-',
-      headshotUrl: row.get('Headshot URL') || null,
-      status: row.get('Status') || 'Active',
-      metrics: metrics, // This attaches the numerical data
-    };
-  });
-
-  // Filter out inactive actors before sending to the frontend
-  return combinedData.filter((actor) => actor.status.toLowerCase() !== 'inactive');
+  } catch (error) {
+    console.error('Error fetching Dashboard Data:', error);
+    return [];
+  }
 }
 
-// 4. Last Sync Date Function
+// 4. Last Sync Date Function (Talent Dashboard)
 export async function getLastSyncDate() {
+  if (process.env.NODE_ENV === 'development' && globalCache.sheetCache.talentSync && (Date.now() - globalCache.sheetCache.talentSync.time < CACHE_TTL)) {
+    return globalCache.sheetCache.talentSync.data;
+  }
+
   try {
     const { google } = require('googleapis');
     const auth = new google.auth.GoogleAuth({
@@ -86,7 +121,6 @@ export async function getLastSyncDate() {
 
     const sheets = google.sheets({ version: 'v4', auth });
     
-    // We fetch Column A. If this tab name is even slightly wrong, it throws an API error.
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID,
       range: 'Data_Log!A:A', 
@@ -95,7 +129,6 @@ export async function getLastSyncDate() {
     const rows = response.data.values;
     if (!rows || rows.length === 0) return 'Empty Sheet';
 
-    // Loop backwards to find the actual last row
     let lastEntry = '';
     for (let i = rows.length - 1; i >= 0; i--) {
       if (rows[i] && rows[i][0] && rows[i][0].trim() !== '') {
@@ -106,43 +139,45 @@ export async function getLastSyncDate() {
 
     if (!lastEntry) return 'No Text Found';
 
-    // === DIAGNOSTIC PARSING ===
+    let resultString = lastEntry.substring(0, 16); // Default fallback
+
     try {
       const dateStringOnly = lastEntry.split(' ')[0]; 
       const parts = dateStringOnly.split('-');
       
-      // IF the format is weird, DO NOT crash. Just print the raw text to the screen!
-      if (parts.length !== 3) return lastEntry.substring(0, 16);
-      
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const day = parseInt(parts[2], 10);
 
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      const monthName = monthNames[month - 1];
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthName = monthNames[month - 1];
 
-      const getOrdinalSuffix = (n: number) => {
-        if (n > 3 && n < 21) return 'th';
-        switch (n % 10) {
-          case 1:  return "st";
-          case 2:  return "nd";
-          case 3:  return "rd";
-          default: return "th";
+        const getOrdinalSuffix = (n: number) => {
+          if (n > 3 && n < 21) return 'th';
+          switch (n % 10) {
+            case 1:  return "st";
+            case 2:  return "nd";
+            case 3:  return "rd";
+            default: return "th";
+          }
+        };
+
+        if (!isNaN(day) && monthName && !isNaN(year)) {
+          resultString = `${day}${getOrdinalSuffix(day)} ${monthName} ${year}`;
         }
-      };
-
-      // Failsafe: if the numbers are broken, return raw text
-      if (isNaN(day) || !monthName || isNaN(year)) return lastEntry.substring(0, 16);
-
-      return `${day}${getOrdinalSuffix(day)} ${monthName} ${year}`;
-
+      }
     } catch (parseError) {
-      // If our Javascript math fails, show exactly what was in the cell
-      return lastEntry.substring(0, 16); 
+      // Keep default fallback
     }
 
+    if (process.env.NODE_ENV === 'development') {
+      globalCache.sheetCache.talentSync = { data: resultString, time: Date.now() };
+    }
+
+    return resultString;
+
   } catch (error: any) {
-    // THE SMOKING GUN: If the Google API fails, print the exact error message to the UI
     console.error('API Error:', error);
     return (error.message || 'API Error').substring(0, 18);
   }
@@ -150,6 +185,11 @@ export async function getLastSyncDate() {
 
 // 5. Macro Dashboard Data Fetching (Network Overview)
 export async function getMacroData() {
+  if (process.env.NODE_ENV === 'development' && globalCache.sheetCache.network && (Date.now() - globalCache.sheetCache.network.time < CACHE_TTL)) {
+    console.log('⚡ Serving Network data from local cache to save API quota...');
+    return globalCache.sheetCache.network.data;
+  }
+
   try {
     await doc.loadInfo(); 
 
@@ -163,7 +203,6 @@ export async function getMacroData() {
 
     const latestMacroMetrics = new Map();
 
-    // 1. Fetch latest metrics (lowercased for safe matching)
     logRows.forEach((row) => {
       const channelName = (row.get('Channel Name') || '').trim();
       if (channelName) {
@@ -180,22 +219,18 @@ export async function getMacroData() {
 
     const uniqueChannels = new Map();
 
-    // 2. Map URLs, but strictly DEDUPLICATE and clean the data
     urlRows.forEach((row) => {
       const channelName = (row.get('Channel Name') || '').trim();
       const status = (row.get('Status') || '').trim().toLowerCase();
       
-      // Skip empty rows or inactive channels
       if (!channelName || status !== 'active') return;
 
       const normalizedName = channelName.toLowerCase();
 
-      // DEDUPLICATION: If we haven't seen this channel yet, process it.
       if (!uniqueChannels.has(normalizedName)) {
         const metrics = latestMacroMetrics.get(normalizedName) || { fb: 0, ig: 0, yt: 0, lastUpdated: '-' };
         const totalAudience = metrics.fb + metrics.ig + metrics.yt;
 
-        // CLEANUP: Trim invisible spaces. Default to 'Uncategorised' if blank.
         let category = (row.get('Category') || '').trim();
         if (!category) category = 'Uncategorised';
 
@@ -213,7 +248,13 @@ export async function getMacroData() {
       }
     });
 
-    return Array.from(uniqueChannels.values());
+    const finalData = Array.from(uniqueChannels.values());
+
+    if (process.env.NODE_ENV === 'development') {
+      globalCache.sheetCache.network = { data: finalData, time: Date.now() };
+    }
+
+    return finalData;
 
   } catch (error) {
     console.error('Error fetching Macro Data:', error);
@@ -223,6 +264,10 @@ export async function getMacroData() {
 
 // 6. Macro Dashboard Last Sync Date
 export async function getMacroLastSyncDate() {
+  if (process.env.NODE_ENV === 'development' && globalCache.sheetCache.networkSync && (Date.now() - globalCache.sheetCache.networkSync.time < CACHE_TTL)) {
+    return globalCache.sheetCache.networkSync.data;
+  }
+
   try {
     const { google } = require('googleapis');
     const auth = new google.auth.GoogleAuth({
@@ -235,7 +280,6 @@ export async function getMacroLastSyncDate() {
 
     const sheets = google.sheets({ version: 'v4', auth });
     
-    // We fetch a small grid (A1 to B3) to safely locate the date
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID,
       range: 'Macro_Dashboard!A1:B3', 
@@ -244,21 +288,22 @@ export async function getMacroLastSyncDate() {
     const rows = response.data.values;
     if (!rows || rows.length === 0) return 'Unknown';
 
-    // 1. Smart Search: Look for the "Last Updated:" label in Column A
+    let finalDate = 'Unknown';
+
     for (const row of rows) {
       if (row[0] && row[0].toString().toLowerCase().includes('last updated')) {
-        // If we find the label, return the value directly next to it in Column B
-        if (row[1] && row[1].trim() !== '') return row[1].trim();
+        if (row[1] && row[1].trim() !== '') finalDate = row[1].trim();
       }
     }
 
-    // 2. Fallback: If the label changes, just check cell B2 (Row 2, Column B)
-    if (rows[1] && rows[1][1] && rows[1][1].trim() !== '') return rows[1][1].trim();
-    
-    // 3. Final Fallback: Check cell B1
-    if (rows[0] && rows[0][1] && rows[0][1].trim() !== '') return rows[0][1].trim();
+    if (finalDate === 'Unknown' && rows[1] && rows[1][1] && rows[1][1].trim() !== '') finalDate = rows[1][1].trim();
+    if (finalDate === 'Unknown' && rows[0] && rows[0][1] && rows[0][1].trim() !== '') finalDate = rows[0][1].trim();
 
-    return 'Unknown';
+    if (process.env.NODE_ENV === 'development') {
+      globalCache.sheetCache.networkSync = { data: finalDate, time: Date.now() };
+    }
+
+    return finalDate;
 
   } catch (error) {
     console.error('Error fetching Macro Last Sync:', error);
