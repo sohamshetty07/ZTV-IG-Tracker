@@ -24,18 +24,15 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
   // Workspace Switcher State
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
-  // 1. On initial load, check if they saved a preference previously
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       setIsDarkMode(true);
     } else if (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      // Optional: Auto-detect their macOS/Windows system preference
       setIsDarkMode(true);
     }
   }, []);
 
-  // 2. Whenever they click the moon/sun, update the page AND save it to storage
   useEffect(() => {
     const root = document.documentElement;
     if (isDarkMode) {
@@ -47,7 +44,6 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     }
   }, [isDarkMode]);
 
-  // Dynamic Lists for Sidebar
   const uniqueCategories = useMemo(() => {
     return Array.from(new Set(initialData.map(ch => ch.category))).sort();
   }, [initialData]);
@@ -63,7 +59,6 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     setList(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
 
-  // Dynamic Filtering & Sorting
   const processedData = useMemo(() => {
     let filtered = initialData.filter(channel => {
       const matchesSearch = channel.channelName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -80,7 +75,6 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     });
   }, [initialData, searchQuery, selectedCategories, selectedChannels, sortBy]);
 
-  // Aggregate Maths
   const summaryMetrics = useMemo(() => {
     const total = processedData.reduce((sum, ch) => sum + (ch.metrics.total || 0), 0);
     return {
@@ -89,16 +83,19 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     };
   }, [processedData]);
 
-  // ENTERPRISE EXPORT ENGINE
+  // ENTERPRISE EXPORT ENGINE (With Dynamic Naming & Link Appending)
   const exportToExcel = () => {
-    // 1. Data Sheet (Math applied to convert back to raw numbers)
+    // 1. Data Sheet (Math applied to convert back to raw numbers, URL Links Appended)
     const dataRows = processedData.map(channel => ({
       "Channel Identity": channel.channelName,
       "Segment": channel.category,
-      "Facebook": Math.round((channel.metrics.fb || 0) * 1000000),
-      "Instagram": Math.round((channel.metrics.ig || 0) * 1000000),
-      "YouTube": Math.round((channel.metrics.yt || 0) * 1000000),
-      "Total Reach": Math.round((channel.metrics.total || 0) * 1000000)
+      "Facebook Reach": Math.round((channel.metrics.fb || 0) * 1000000),
+      "Instagram Reach": Math.round((channel.metrics.ig || 0) * 1000000),
+      "YouTube Reach": Math.round((channel.metrics.yt || 0) * 1000000),
+      "Total Reach": Math.round((channel.metrics.total || 0) * 1000000),
+      "Facebook Link": channel.urls?.facebook || '-',
+      "Instagram Link": channel.urls?.instagram || '-',
+      "YouTube Link": channel.urls?.youtube || '-'
     }));
     const dataSheet = XLSX.utils.json_to_sheet(dataRows);
 
@@ -118,8 +115,25 @@ export default function MacroDashboardClient({ initialData, lastSync }: { initia
     XLSX.utils.book_append_sheet(wb, dataSheet, "Network Data");
     XLSX.utils.book_append_sheet(wb, metaSheet, "Report Metadata");
 
-    // 4. Download
-    XLSX.writeFile(wb, `Zee_Network_Intelligence_${new Date().toISOString().split('T')[0]}.xlsx`);
+    // 4. Dynamic Naming Engine
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.toLocaleString('en-GB', { month: 'short' });
+    const dateStr = `${day}${month}`; // Result: "15Apr"
+
+    let scopeStr = "Overview";
+    if (selectedCategories.length === 1) {
+      scopeStr = selectedCategories[0].replace(/[^a-zA-Z0-9]/g, ''); // E.g., "TV" or "News"
+    } else if (selectedCategories.length > 1) {
+      scopeStr = "MultiSegment";
+    } else if (selectedChannels.length > 0) {
+      scopeStr = "Custom";
+    }
+
+    const fileName = `Zee_Network_${scopeStr}_${dateStr}.xlsx`;
+
+    // 5. Download
+    XLSX.writeFile(wb, fileName);
   };
 
   return (

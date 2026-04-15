@@ -36,7 +36,6 @@ function normalizeHandle(url: string | undefined): string {
 
 // 3. Main Data Fetching Function (Talent Dashboard)
 export async function getDashboardData() {
-  // Check local cache first to save Google API Quota
   if (process.env.NODE_ENV === 'development' && globalCache.sheetCache.talent && (Date.now() - globalCache.sheetCache.talent.time < CACHE_TTL)) {
     console.log('⚡ Serving Talent data from local cache to save API quota...');
     return globalCache.sheetCache.talent.data;
@@ -90,7 +89,6 @@ export async function getDashboardData() {
 
     const finalData = combinedData.filter((actor) => actor.status.toLowerCase() !== 'inactive');
 
-    // Save to cache
     if (process.env.NODE_ENV === 'development') {
       globalCache.sheetCache.talent = { data: finalData, time: Date.now() };
     }
@@ -139,7 +137,7 @@ export async function getLastSyncDate() {
 
     if (!lastEntry) return 'No Text Found';
 
-    let resultString = lastEntry.substring(0, 16); // Default fallback
+    let resultString = lastEntry.substring(0, 16); 
 
     try {
       const dateStringOnly = lastEntry.split(' ')[0]; 
@@ -167,9 +165,7 @@ export async function getLastSyncDate() {
           resultString = `${day}${getOrdinalSuffix(day)} ${monthName} ${year}`;
         }
       }
-    } catch (parseError) {
-      // Keep default fallback
-    }
+    } catch (parseError) { }
 
     if (process.env.NODE_ENV === 'development') {
       globalCache.sheetCache.talentSync = { data: resultString, time: Date.now() };
@@ -234,12 +230,27 @@ export async function getMacroData() {
         let category = (row.get('Category') || '').trim();
         if (!category) category = 'Uncategorised';
 
+        // NEW: Fetch and format the social URLs
+        const fbUrl = row.get('Facebook URL')?.trim() || '-';
+        const igUrl = row.get('Instagram URL')?.trim() || '-';
+        let ytId = row.get('YouTube Channel ID')?.trim() || '-';
+        
+        // Format YouTube ID into a full URL if it isn't one already
+        if (ytId !== '-' && !ytId.includes('youtube.com')) {
+          ytId = ytId.startsWith('@') ? `https://www.youtube.com/${ytId}` : `https://www.youtube.com/channel/${ytId}`;
+        }
+
         uniqueChannels.set(normalizedName, {
           id: channelName,
           channelName: channelName,
           category: category,
           status: 'Active',
           networkType: 'Zee',
+          urls: {
+            facebook: fbUrl,
+            instagram: igUrl,
+            youtube: ytId
+          },
           metrics: {
             ...metrics,
             total: totalAudience

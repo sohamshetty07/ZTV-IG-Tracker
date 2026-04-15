@@ -94,7 +94,7 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
     }
   };
 
-  // INTELLIGENT NUMBER PARSER (Converts 1.2M to 1200000 for accurate sorting)
+  // INTELLIGENT NUMBER PARSER
   const parseKMMetric = (val: string | number) => {
     if (!val || val === '-') return 0;
     const str = String(val).toUpperCase().replace(/,/g, '');
@@ -146,6 +146,7 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
     return (sum / 1000000).toFixed(2) + ' M';
   }, [processedActors]);
 
+  // SMART EXPORT ENGINE
   const exportToExcel = () => {
     const dataRows = processedActors.map(a => {
       const baseRow: any = {
@@ -181,7 +182,29 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, dataSheet, "Talent Data");
     XLSX.utils.book_append_sheet(wb, metaSheet, "Report Metadata");
-    XLSX.writeFile(wb, `Z_Talent_Intelligence_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    // DYNAMIC NAMING ENGINE
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.toLocaleString('en-GB', { month: 'short' });
+    const dateStr = `${day}${month}`; // e.g., "15Apr"
+
+    const accountTypeStr = showOfficialAccounts ? "Official" : "Actors";
+
+    let scopeStr = "All";
+    if (selectedShows.length === 1) {
+      scopeStr = selectedShows[0].replace(/[^a-zA-Z0-9]/g, ''); // e.g., "KundaliBhagya"
+    } else if (selectedShows.length > 1) {
+      scopeStr = "MultiShow";
+    } else if (selectedChannels.length === 1) {
+      scopeStr = selectedChannels[0].replace(/[^a-zA-Z0-9]/g, ''); // e.g., "ZeeTV"
+    } else if (selectedChannels.length > 1) {
+      scopeStr = "MultiChannel";
+    }
+
+    const fileName = `Zee_Talent_${scopeStr}_${accountTypeStr}_${dateStr}.xlsx`;
+
+    XLSX.writeFile(wb, fileName);
   };
 
   const copyShareLink = async () => {
