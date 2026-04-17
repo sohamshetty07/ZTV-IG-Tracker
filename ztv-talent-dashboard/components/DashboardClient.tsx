@@ -443,6 +443,8 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
                       <thead className="text-[11px] font-black text-black dark:text-white uppercase tracking-widest bg-neutral-100 dark:bg-[#111] border-b border-neutral-200 dark:border-neutral-900 whitespace-nowrap sticky top-0 z-20 shadow-sm">
                         <tr className="overflow-visible">
                           <th className="px-6 py-5 min-w-[220px] border-b border-neutral-200 dark:border-neutral-900">Name</th>
+                          {/* NEW HEADER: Channel */}
+                          <th className="px-6 py-5 min-w-[140px] border-b border-neutral-200 dark:border-neutral-900">Channel</th>
                           <th className="px-6 py-5 min-w-[160px] border-b border-neutral-200 dark:border-neutral-900">Show & Time</th>
                           
                           <th className={`px-6 py-5 text-center border-b border-neutral-200 dark:border-neutral-900 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors min-w-[110px] ${sortBy === 'followers' ? 'text-blue-600 dark:text-blue-400' : ''}`} onClick={() => handleSort('followers')}>
@@ -493,6 +495,13 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
                                 </div>
                               </td>
                               
+                              {/* NEW ROW DATA: Channel Badge */}
+                              <td className="px-6 py-3 align-middle">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                                  {actor.channel}
+                                </span>
+                              </td>
+
                               <td className="px-6 py-3 align-middle">
                                   <div className="font-bold text-black dark:text-white line-clamp-1">{actor.showName}</div>
                                   <div className="text-[11px] text-neutral-500 mt-0.5 flex items-center"><Clock className="w-3 h-3 mr-1" />{actor.timeSlot}</div>
