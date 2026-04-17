@@ -18,7 +18,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
   const [selectedShows, setSelectedShows] = useState<string[]>(parseUrlArray(searchParams.get('shows')));
   const [selectedGenders, setSelectedGenders] = useState<string[]>(parseUrlArray(searchParams.get('genders')));
   
-  // ADVANCED SORTING STATE
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'viewRate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>((searchParams.get('order') as 'asc' | 'desc') || 'desc');
   
@@ -43,8 +42,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
 
   useEffect(() => {
     const root = document.documentElement;
-    
-    // 1. Find or create the browser's theme-color meta tag
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) {
       metaThemeColor = document.createElement('meta');
@@ -52,15 +49,14 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
       document.head.appendChild(metaThemeColor);
     }
 
-    // 2. Apply theme and sync browser top-bar colour
     if (isDarkMode) {
       root.classList.add('dark');
       localStorage.setItem('theme', 'dark');
-      metaThemeColor.setAttribute('content', '#000000'); // Matches your dark:bg-black
+      metaThemeColor.setAttribute('content', '#000000'); 
     } else {
       root.classList.remove('dark');
       localStorage.setItem('theme', 'light');
-      metaThemeColor.setAttribute('content', '#fafafa'); // Matches your bg-neutral-50
+      metaThemeColor.setAttribute('content', '#fafafa'); 
     }
   }, [isDarkMode]);
 
@@ -96,7 +92,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
     setList(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
 
-  // MULTI-DIRECTIONAL SORT HANDLER
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
@@ -106,7 +101,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
     }
   };
 
-  // INTELLIGENT NUMBER PARSER
   const parseKMMetric = (val: string | number) => {
     if (!val || val === '-') return 0;
     const str = String(val).toUpperCase().replace(/,/g, '');
@@ -118,7 +112,10 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
 
   const processedActors = useMemo(() => {
     let filtered = baseActors.filter(actor => {
-      const matchesSearch = actor.realName.toLowerCase().includes(searchQuery.toLowerCase()) || actor.handle.toLowerCase().includes(searchQuery.toLowerCase());
+      const safeHandle = actor.handle || '';
+      const matchesSearch = actor.realName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            safeHandle.toLowerCase().includes(searchQuery.toLowerCase());
+      
       const matchesChannel = selectedChannels.length === 0 || selectedChannels.includes(actor.channel);
       const matchesShow = selectedShows.length === 0 || selectedShows.includes(actor.showName);
       const matchesGender = selectedGenders.length === 0 || selectedGenders.includes(actor.gender);
@@ -158,25 +155,24 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
     return (sum / 1000000).toFixed(2) + ' M';
   }, [processedActors]);
 
-  // SMART EXPORT ENGINE
   const exportToExcel = () => {
     const dataRows = processedActors.map(a => {
       const baseRow: any = {
         "Real Name": a.realName,
         "Reel Name": a.reelName,
-        "Instagram Handle": `@${a.handle}`,
+        "Instagram Handle": a.isOffGrid ? 'Not Active' : (a.handle ? `@${a.handle}` : '-'),
         "Channel": a.channel,
-        "Show Name": a.showName,
+        "Show Name": a.showName === '-' ? 'Network Account' : a.showName,
         "Time Slot": a.timeSlot,
         "Gender": a.gender,
-        "Followers": parseInt(String(a.metrics?.exactFollowers || '0').replace(/,/g, ''), 10) || 0,
+        "Followers": a.isOffGrid ? "Off-Grid" : parseInt(String(a.metrics?.exactFollowers || '0').replace(/,/g, ''), 10) || 0,
       };
 
       if (showAnalytics) {
-        baseRow["Avg Photo Likes"] = a.metrics?.avgPhotoLikes || '-';
-        baseRow["Avg Reel Views"] = a.metrics?.avgReelViews || '-';
-        baseRow["Avg Comments"] = a.metrics?.avgComments || '-';
-        baseRow["View Rate %"] = a.metrics?.viewRate || '-';
+        baseRow["Avg Photo Likes"] = a.isOffGrid ? '-' : (a.metrics?.avgPhotoLikes || '-');
+        baseRow["Avg Reel Views"] = a.isOffGrid ? '-' : (a.metrics?.avgReelViews || '-');
+        baseRow["Avg Comments"] = a.isOffGrid ? '-' : (a.metrics?.avgComments || '-');
+        baseRow["View Rate %"] = a.isOffGrid ? '-' : (a.metrics?.viewRate || '-');
       }
       return baseRow;
     });
@@ -195,21 +191,20 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
     XLSX.utils.book_append_sheet(wb, dataSheet, "Talent Data");
     XLSX.utils.book_append_sheet(wb, metaSheet, "Report Metadata");
 
-    // DYNAMIC NAMING ENGINE
     const today = new Date();
     const day = today.getDate();
     const month = today.toLocaleString('en-GB', { month: 'short' });
-    const dateStr = `${day}${month}`; // e.g., "15Apr"
+    const dateStr = `${day}${month}`;
 
     const accountTypeStr = showOfficialAccounts ? "Official" : "Actors";
 
     let scopeStr = "All";
     if (selectedShows.length === 1) {
-      scopeStr = selectedShows[0].replace(/[^a-zA-Z0-9]/g, ''); // e.g., "KundaliBhagya"
+      scopeStr = selectedShows[0].replace(/[^a-zA-Z0-9]/g, ''); 
     } else if (selectedShows.length > 1) {
       scopeStr = "MultiShow";
     } else if (selectedChannels.length === 1) {
-      scopeStr = selectedChannels[0].replace(/[^a-zA-Z0-9]/g, ''); // e.g., "ZeeTV"
+      scopeStr = selectedChannels[0].replace(/[^a-zA-Z0-9]/g, ''); 
     } else if (selectedChannels.length > 1) {
       scopeStr = "MultiChannel";
     }
@@ -356,7 +351,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
             <p className="text-[9px] text-neutral-400 mt-2 px-1 leading-tight">Internal engagement metrics and View Rates.</p>
           </div>
 
-          {/* DYNAMIC SIDEBAR SORTING */}
           {showAnalytics && (
              <div>
                <label className="block text-xs uppercase tracking-wider font-bold text-neutral-500 mb-3">Sort Primary Metric</label>
@@ -443,7 +437,6 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
                       <thead className="text-[11px] font-black text-black dark:text-white uppercase tracking-widest bg-neutral-100 dark:bg-[#111] border-b border-neutral-200 dark:border-neutral-900 whitespace-nowrap sticky top-0 z-20 shadow-sm">
                         <tr className="overflow-visible">
                           <th className="px-6 py-5 min-w-[220px] border-b border-neutral-200 dark:border-neutral-900">Name</th>
-                          {/* NEW HEADER: Channel */}
                           <th className="px-6 py-5 min-w-[140px] border-b border-neutral-200 dark:border-neutral-900">Channel</th>
                           <th className="px-6 py-5 min-w-[160px] border-b border-neutral-200 dark:border-neutral-900">Show & Time</th>
                           
@@ -473,12 +466,14 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
                       </thead>
                       <tbody>
                         {processedActors.map((actor, i) => {
-                          const isReelNameValid = actor.reelName && actor.reelName !== '-';
-                          const primaryName = isReelNameValid ? actor.reelName : actor.realName;
+                          const isReelNameValid = actor.reelName && actor.reelName !== '-' && actor.reelName.toLowerCase() !== actor.realName.toLowerCase();
+                          const primaryName = actor.reelName && actor.reelName !== '-' ? actor.reelName : actor.realName;
                           const secondaryName = isReelNameValid ? actor.realName : null;
+                          const isOfficialChannel = primaryName.toLowerCase() === (actor.channel || '').toLowerCase();
 
                           return (
                             <tr key={i} className="border-b border-neutral-100 dark:border-neutral-900/50 hover:bg-neutral-50 dark:hover:bg-[#111] transition-colors whitespace-nowrap group">
+                              
                               <td className="px-6 py-3 font-bold text-black dark:text-white flex items-center min-w-[220px]">
                                 <div className="w-9 h-9 rounded-full bg-neutral-200 dark:bg-neutral-800 mr-4 overflow-hidden shrink-0">
                                   {actor.headshotUrl ? (
@@ -488,42 +483,82 @@ export default function DashboardClient({ initialActors, lastSync }: { initialAc
                                   )}
                                 </div>
                                 <div className="flex flex-col justify-center">
-                                  <span className="leading-tight">{primaryName}</span>
+                                  <span className="leading-tight flex items-center">
+                                    {primaryName}
+                                    {isOfficialChannel && (
+                                      <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] uppercase tracking-widest font-black bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                        Official
+                                      </span>
+                                    )}
+                                  </span>
                                   {secondaryName && (
                                     <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 mt-0.5">{secondaryName}</span>
                                   )}
                                 </div>
                               </td>
                               
-                              {/* NEW ROW DATA: Channel Badge */}
                               <td className="px-6 py-3 align-middle">
-                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
-                                  {actor.channel}
-                                </span>
+                                {!isOfficialChannel ? (
+                                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                                    {actor.channel}
+                                  </span>
+                                ) : (
+                                  <span className="text-neutral-400 dark:text-neutral-600 italic text-xs font-medium">
+                                    Network
+                                  </span>
+                                )}
                               </td>
 
                               <td className="px-6 py-3 align-middle">
-                                  <div className="font-bold text-black dark:text-white line-clamp-1">{actor.showName}</div>
-                                  <div className="text-[11px] text-neutral-500 mt-0.5 flex items-center"><Clock className="w-3 h-3 mr-1" />{actor.timeSlot}</div>
+                                {actor.showName !== '-' ? (
+                                  <>
+                                    <div className="font-bold text-black dark:text-white line-clamp-1">{actor.showName}</div>
+                                    <div className="text-[11px] text-neutral-500 mt-0.5 flex items-center"><Clock className="w-3 h-3 mr-1" />{actor.timeSlot !== '-' ? actor.timeSlot : 'TBD'}</div>
+                                  </>
+                                ) : (
+                                  <span className="text-neutral-400 dark:text-neutral-600 italic text-xs font-medium">Network Account</span>
+                                )}
                               </td>
                               
-                              <td className="px-6 py-3 text-center align-middle font-bold text-black dark:text-white">{actor.metrics?.formattedFollowers || '-'}</td>
+                              <td className="px-6 py-3 text-center align-middle font-bold text-black dark:text-white">
+                                {actor.isOffGrid ? (
+                                  <span className="text-neutral-400 dark:text-neutral-600 italic text-xs font-medium">Inactive</span>
+                                ) : (
+                                  actor.metrics?.formattedFollowers || '-'
+                                )}
+                              </td>
                               
                               {showAnalytics && (
-                                <>
-                                  <td className="px-6 py-3 text-center align-middle font-black text-emerald-600 dark:text-emerald-500 bg-emerald-50/30 dark:bg-emerald-900/10">
-                                    {actor.metrics?.viewRate || '-'}
+                                actor.isOffGrid ? (
+                                  <td colSpan={4} className="px-6 py-3 text-center align-middle font-medium text-neutral-400 dark:text-neutral-600 italic text-[11px] bg-neutral-50/50 dark:bg-[#111]/50">
+                                    No Social Data Available
                                   </td>
-                                  <td className="px-6 py-3 text-center align-middle font-medium">{actor.metrics?.avgPhotoLikes || '-'}</td>
-                                  <td className="px-6 py-3 text-center align-middle font-medium">{actor.metrics?.avgReelViews || '-'}</td>
-                                  <td className="px-6 py-3 text-center align-middle font-medium">{actor.metrics?.avgComments || '-'}</td>
-                                </>
+                                ) : (
+                                  <>
+                                    <td className="px-6 py-3 text-center align-middle font-black text-emerald-600 dark:text-emerald-500 bg-emerald-50/30 dark:bg-emerald-900/10">
+                                      {actor.metrics?.viewRate || '-'}
+                                    </td>
+                                    <td className="px-6 py-3 text-center align-middle font-medium">{actor.metrics?.avgPhotoLikes || '-'}</td>
+                                    <td className="px-6 py-3 text-center align-middle font-medium">{actor.metrics?.avgReelViews || '-'}</td>
+                                    <td className="px-6 py-3 text-center align-middle font-medium">{actor.metrics?.avgComments || '-'}</td>
+                                  </>
+                                )
                               )}
                               
                               <td className="px-6 py-3 text-right align-middle">
-                                <a href={`https://instagram.com/${actor.handle}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-end px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all text-[11px] font-bold w-fit ml-auto tracking-wide">
-                                  @{actor.handle} <ExternalLink className="w-3 h-3 ml-1.5 opacity-50 group-hover:opacity-100"/>
-                                </a>
+                                {actor.isOffGrid ? (
+                                  <span className="inline-flex items-center justify-end px-3 py-1.5 rounded-full text-neutral-400 dark:text-neutral-500 bg-neutral-100 dark:bg-neutral-800/50 text-[11px] font-bold w-fit ml-auto tracking-wide">
+                                    Off-Grid
+                                  </span>
+                                ) : actor.handle ? (
+                                  <a href={`https://instagram.com/${actor.handle}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-end px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all text-[11px] font-bold w-fit ml-auto tracking-wide">
+                                    @{actor.handle} <ExternalLink className="w-3 h-3 ml-1.5 opacity-50 group-hover:opacity-100"/>
+                                  </a>
+                                ) : (
+                                  <span className="inline-flex items-center justify-end px-3 py-1.5 rounded-full text-neutral-400 dark:text-neutral-600 text-[11px] font-bold w-fit ml-auto tracking-wide">
+                                    No Handle
+                                  </span>
+                                )}
                               </td>
                             </tr>
                           );

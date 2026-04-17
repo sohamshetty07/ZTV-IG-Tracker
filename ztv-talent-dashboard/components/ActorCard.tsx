@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, ExternalLink, Clock, MessageCircle, Heart, Users, PlayCircle, Tv, Monitor } from 'lucide-react';
+import { TrendingUp, ExternalLink, Clock, MessageCircle, Heart, Users, PlayCircle, Tv, Monitor, CloudOff } from 'lucide-react';
 
 export default function ActorCard({ actor, showAnalytics = false }: { actor: any, showAnalytics?: boolean }) {
   const m = actor.metrics;
@@ -13,12 +13,18 @@ export default function ActorCard({ actor, showAnalytics = false }: { actor: any
   };
 
   const exactInt = parseInt(String(m?.exactFollowers || '0').replace(/,/g, ''), 10) || 0;
-  const tier = hasData ? getTierBadge(exactInt) : { label: 'Pending', color: 'bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-600' };
+  
+  const tier = actor.isOffGrid 
+    ? { label: 'OFF-GRID', color: 'bg-neutral-200 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500' }
+    : hasData 
+      ? getTierBadge(exactInt) 
+      : { label: 'Pending', color: 'bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-600' };
 
-  // NAME HIERARCHY LOGIC: Prioritize Reel Name
-  const isReelNameValid = actor.reelName && actor.reelName !== '-';
-  const primaryName = isReelNameValid ? actor.reelName : actor.realName;
+  // SMART DEDUPLICATION LOGIC
+  const isReelNameValid = actor.reelName && actor.reelName !== '-' && actor.reelName.toLowerCase() !== actor.realName.toLowerCase();
+  const primaryName = actor.reelName && actor.reelName !== '-' ? actor.reelName : actor.realName;
   const secondaryName = isReelNameValid ? actor.realName : null;
+  const isOfficialChannel = primaryName.toLowerCase() === (actor.channel || '').toLowerCase();
 
   return (
     <div className="bg-white dark:bg-[#0a0a0a] border border-neutral-200/80 dark:border-neutral-800/80 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-neutral-200/50 dark:hover:shadow-none hover:border-neutral-400 dark:hover:border-neutral-600 transition-all duration-300 flex flex-col group h-full">
@@ -38,31 +44,61 @@ export default function ActorCard({ actor, showAnalytics = false }: { actor: any
         </div>
         
         <div className="flex-1 min-w-0 pt-0.5">
-          {/* PRIMARY IDENTIFIER (Reel Name) */}
-          <h3 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white leading-tight whitespace-normal break-words tracking-tight">{primaryName}</h3>
+          {/* PRIMARY NAME WITH OFFICIAL BADGE */}
+          <h3 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-white leading-tight whitespace-normal break-words tracking-tight flex items-center flex-wrap">
+            {primaryName}
+            {isOfficialChannel && (
+              <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] uppercase tracking-widest font-black bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mt-0.5">
+                Official
+              </span>
+            )}
+          </h3>
           
-          {/* SECONDARY IDENTIFIER (Real Name) */}
           {secondaryName && (
             <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mt-0.5">
               {secondaryName}
             </p>
           )}
 
-          {/* CONTEXT: Channel, Show & Time Slot */}
           <div className="mt-2 flex flex-col gap-1 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
-            <div className="flex items-center line-clamp-1"><Monitor className="w-3 h-3 mr-1.5 shrink-0"/> {actor.channel}</div>
-            <div className="flex items-center line-clamp-1"><Tv className="w-3 h-3 mr-1.5 shrink-0"/> {actor.showName}</div>
-            <div className="flex items-center"><Clock className="w-3 h-3 mr-1.5 shrink-0"/> {actor.timeSlot}</div>
+            {/* ONLY SHOW CHANNEL IF NOT OFFICIAL */}
+            {!isOfficialChannel && (
+              <div className="flex items-center line-clamp-1"><Monitor className="w-3 h-3 mr-1.5 shrink-0"/> {actor.channel}</div>
+            )}
+            
+            {actor.showName !== '-' ? (
+              <>
+                <div className="flex items-center line-clamp-1"><Tv className="w-3 h-3 mr-1.5 shrink-0"/> {actor.showName}</div>
+                <div className="flex items-center"><Clock className="w-3 h-3 mr-1.5 shrink-0"/> {actor.timeSlot !== '-' ? actor.timeSlot : 'TBD'}</div>
+              </>
+            ) : (
+              <div className="flex items-center text-neutral-400 dark:text-neutral-600 italic">Network Account</div>
+            )}
           </div>
           
-          <a href={`https://instagram.com/${actor.handle}`} target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm font-medium text-neutral-400 dark:text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 flex items-center mt-2 w-fit transition-colors">
-            @{actor.handle} <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"/>
-          </a>
+          {actor.isOffGrid ? (
+            <span className="text-xs sm:text-sm font-medium text-neutral-400 dark:text-neutral-500 mt-2 flex items-center">
+              Not on Socials
+            </span>
+          ) : actor.handle ? (
+            <a href={`https://instagram.com/${actor.handle}`} target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm font-medium text-neutral-400 dark:text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 flex items-center mt-2 w-fit transition-colors">
+              @{actor.handle} <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"/>
+            </a>
+          ) : (
+            <span className="text-xs sm:text-sm font-medium text-neutral-400 dark:text-neutral-600 mt-2 flex items-center">
+              No Handle
+            </span>
+          )}
         </div>
       </div>
 
       <div className="px-5 pb-5 pt-1 flex-1 flex flex-col justify-end">
-        {hasData ? (
+        {actor.isOffGrid ? (
+          <div className="h-full flex flex-col items-center justify-center text-neutral-400 bg-neutral-50 dark:bg-[#111] rounded-xl border border-neutral-100 dark:border-neutral-800/50 min-h-[100px]">
+            <CloudOff className="w-5 h-5 mb-2 opacity-50"/>
+            <span className="text-[10px] uppercase tracking-wider font-bold">No Public Accounts</span>
+          </div>
+        ) : hasData ? (
           showAnalytics ? (
             <div className="bg-neutral-50 dark:bg-[#111111] rounded-xl p-4 flex flex-col justify-between h-full border border-neutral-100 dark:border-neutral-800/50">
               <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-4 border-b border-neutral-200 dark:border-neutral-800/50 pb-4">
@@ -100,7 +136,7 @@ export default function ActorCard({ actor, showAnalytics = false }: { actor: any
             </div>
           )
         ) : (
-          <div className="h-full flex items-center justify-center text-sm text-neutral-400 italic bg-neutral-50 dark:bg-[#111] rounded-xl border border-neutral-100 dark:border-neutral-800/50">Awaiting data...</div>
+          <div className="h-full flex items-center justify-center text-sm text-neutral-400 italic bg-neutral-50 dark:bg-[#111] rounded-xl border border-neutral-100 dark:border-neutral-800/50 min-h-[50px]">Awaiting data...</div>
         )}
       </div>
     </div>

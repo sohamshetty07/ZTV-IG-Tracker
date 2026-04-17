@@ -30,8 +30,21 @@ const doc = new GoogleSpreadsheet(process.env.GOOGLE_SPREADSHEET_ID!, serviceAcc
 // 2. Utility: URL Normaliser to extract just the handle
 function normalizeHandle(url: string | undefined): string {
   if (!url) return '';
-  const match = url.match(/instagram\.com\/([^/?#]+)/i);
-  return match ? match[1].toLowerCase().trim() : '';
+  const cleanStr = String(url).toLowerCase().trim();
+  
+  // Explicitly ignore "Not Active" and variants
+  if (cleanStr === 'not active' || cleanStr === 'n/a' || cleanStr === '-') return '';
+
+  // Route 1: It's a standard Instagram URL
+  const match = cleanStr.match(/instagram\.com\/([^/?#]+)/i);
+  if (match) return match[1].replace('@', '').trim();
+
+  // Route 2: It's raw text (e.g., "@shraddhaarya" or "shraddhaarya")
+  if (!cleanStr.includes('http') && !cleanStr.includes('.com')) {
+     return cleanStr.replace('@', '').trim();
+  }
+
+  return '';
 }
 
 // 3. Main Data Fetching Function (Talent Dashboard)
@@ -70,11 +83,17 @@ export async function getDashboardData() {
     });
 
     const combinedData = rosterRows.map((row) => {
-      const handle = normalizeHandle(row.get('Instagram URL'));
+      const rawUrl = row.get('Instagram URL');
+      
+      // EXPLICIT OFF-GRID TAGGING
+      const isOffGrid = String(rawUrl || '').toLowerCase().trim() === 'not active';
+      
+      const handle = isOffGrid ? '' : normalizeHandle(rawUrl);
       const metrics = latestMetrics.get(handle) || null;
 
       return {
         handle: handle,
+        isOffGrid: isOffGrid, // NEW DATA POINT
         realName: row.get('Real Name') || 'Unknown',
         reelName: row.get('Reel Name') || '-',
         channel: row.get('Channel') || '-',
@@ -190,13 +209,13 @@ export async function getMacroData() {
     await doc.loadInfo(); 
 
     const urlsSheet = doc.sheetsByTitle['Master_URLs'];
-    const compUrlsSheet = doc.sheetsByTitle['Competitor_URLs']; // NEW: Fetch Competitor Sheet
+    const compUrlsSheet = doc.sheetsByTitle['Competitor_URLs']; 
     const logSheet = doc.sheetsByTitle['Macro_Data_Log'];
 
     if (!urlsSheet || !logSheet) return [];
 
     const urlRows = await urlsSheet.getRows();
-    const compUrlRows = compUrlsSheet ? await compUrlsSheet.getRows() : []; // Safe fallback
+    const compUrlRows = compUrlsSheet ? await compUrlsSheet.getRows() : []; 
     const logRows = await logSheet.getRows();
 
     const latestMacroMetrics = new Map();
@@ -217,7 +236,6 @@ export async function getMacroData() {
 
     const uniqueChannels = new Map();
 
-    // Helper function to process rows to avoid code duplication
     const processRows = (rows: any[], networkType: 'Zee' | 'Competitor') => {
       rows.forEach((row) => {
         const channelName = (row.get('Channel Name') || '').trim();
@@ -247,7 +265,7 @@ export async function getMacroData() {
             channelName: channelName,
             category: category,
             status: 'Active',
-            networkType: networkType, // Attach the dynamic tag here
+            networkType: networkType, 
             urls: {
               facebook: fbUrl,
               instagram: igUrl,
@@ -262,7 +280,6 @@ export async function getMacroData() {
       });
     };
 
-    // Process Zee Channels First, then Competitors
     processRows(urlRows, 'Zee');
     processRows(compUrlRows, 'Competitor');
 
