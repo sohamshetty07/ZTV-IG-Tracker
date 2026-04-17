@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, ExternalLink, Clock, MessageCircle, Heart, Users, PlayCircle, Tv } from 'lucide-react';
+import { TrendingUp, ExternalLink, Clock, MessageCircle, Heart, Users, PlayCircle, Tv, Monitor } from 'lucide-react';
 
 export default function ActorCard({ actor, showAnalytics = false }: { actor: any, showAnalytics?: boolean }) {
   const m = actor.metrics;
@@ -48,8 +48,9 @@ export default function ActorCard({ actor, showAnalytics = false }: { actor: any
             </p>
           )}
 
-          {/* CONTEXT: Show & Time Slot */}
+          {/* CONTEXT: Channel, Show & Time Slot */}
           <div className="mt-2 flex flex-col gap-1 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+            <div className="flex items-center line-clamp-1"><Monitor className="w-3 h-3 mr-1.5 shrink-0"/> {actor.channel}</div>
             <div className="flex items-center line-clamp-1"><Tv className="w-3 h-3 mr-1.5 shrink-0"/> {actor.showName}</div>
             <div className="flex items-center"><Clock className="w-3 h-3 mr-1.5 shrink-0"/> {actor.timeSlot}</div>
           </div>
