@@ -252,6 +252,10 @@ export async function getMacroData() {
           let category = (row.get('Category') || '').trim();
           if (!category) category = 'Uncategorised';
 
+          // NEW: Fetch Network Alignment with safe fallbacks
+          const rawAlignment = row.get('Network Alignment')?.trim();
+          const alignment = rawAlignment || (networkType === 'Zee' ? 'Zee Entertainment' : 'Competitor');
+
           const fbUrl = row.get('Facebook URL')?.trim() || '-';
           const igUrl = row.get('Instagram URL')?.trim() || '-';
           let ytId = row.get('YouTube Channel ID')?.trim() || '-';
@@ -264,6 +268,7 @@ export async function getMacroData() {
             id: channelName,
             channelName: channelName,
             category: category,
+            alignment: alignment, // APPENDED TO OUTPUT OBJECT
             status: 'Active',
             networkType: networkType, 
             urls: {
