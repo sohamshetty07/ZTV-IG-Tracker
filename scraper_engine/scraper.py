@@ -120,21 +120,40 @@ async def main():
                     view_rate_percentage = "-"
                     status = "Blocked/Data not found"
                     
-                    # --- 1. GRAB FOLLOWERS ---
+                    # --- 1. GRAB FOLLOWERS (THE META TAG METHOD) ---
                     try:
-                        locators = await page.locator('a[href$="/followers/"] span').all()
-                        for loc in locators:
-                            title = await loc.get_attribute('title')
-                            if title:
-                                exact_count = int(re.sub(r'[^\d]', '', title))
-                                break
-                            else:
-                                text = await loc.inner_text()
-                                if text and text.replace(',', '').isdigit():
-                                    exact_count = int(text.replace(',', ''))
-                                    break
+                        # 1. Primary Strategy: Check the hidden meta tag for link previews
+                        # This loads instantly and bypasses front-end UI changes entirely.
+                        meta_desc = await page.locator('meta[property="og:description"]').get_attribute('content', timeout=5000)
+                        
+                        if meta_desc:
+                            # Regex to extract the number before " Followers" (e.g., "1.5M Followers")
+                            match = re.search(r'([\d.,]+[kmKM]?)\s+Followers', meta_desc, re.IGNORECASE)
+                            if match:
+                                raw_val = match.group(1).upper()
+                                exact_count = parse_to_raw_integer(raw_val)
                     except Exception:
                         pass
+                    
+                    # 2. Secondary Strategy: Raw Text Extraction
+                    # If the meta tag is missing, we dump the entire page text and regex search it
+                    if not exact_count:
+                        try:
+                            # Give the React framework a moment to hydrate the text
+                            await page.wait_for_timeout(2000)
+                            
+                            # Grab all visible text on the page as one giant string
+                            text_content = await page.evaluate("document.body.innerText")
+                            
+                            # Look for the word 'followers' preceded by a number
+                            matches = re.findall(r'([\d.,]+[kmKM]?)\nfollowers', text_content, re.IGNORECASE)
+                            if not matches:
+                                matches = re.findall(r'([\d.,]+[kmKM]?)\sfollowers', text_content, re.IGNORECASE)
+                                
+                            if matches:
+                                exact_count = parse_to_raw_integer(matches[0].upper())
+                        except Exception as e:
+                            logger.info(f"   [Data extraction failed: {str(e)}]")
                     
                     # --- 2. GRAB ENGAGEMENT ---
                     if exact_count is not None:

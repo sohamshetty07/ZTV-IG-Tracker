@@ -172,8 +172,19 @@ async def main():
 
     # NEW: Fetching and combining both sheets
     logger.info("Fetching Zee URLs and Competitor URLs...")
-    zee_records = roster_sheet.get_all_records()
-    comp_records = competitor_sheet.get_all_records()
+    
+    try:
+        zee_records = roster_sheet.get_all_records()
+    except Exception as e:
+        logger.error(f"CRITICAL: Failed to read Master_URLs headers: {e}")
+        zee_records = []
+
+    try:
+        comp_records = competitor_sheet.get_all_records()
+    except Exception as e:
+        logger.warning("⚠ Competitor_URLs is empty or missing headers. Skipping competitors for this run.")
+        comp_records = []
+        
     combined_records = zee_records + comp_records
     
     rows_to_append = []
