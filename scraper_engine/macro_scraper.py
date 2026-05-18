@@ -114,16 +114,36 @@ async def get_instagram_followers(page, url):
     if not url or "instagram.com" not in url: return "Invalid URL"
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=20000)
-        await page.wait_for_timeout(3000)
         
-        locators = await page.locator('a[href$="/followers/"] span').all()
-        for loc in locators:
-            title = await loc.get_attribute('title')
-            if title:
-                return format_macro_count(int(re.sub(r'[^\d]', '', title)))
-            text = await loc.inner_text()
-            if text and text.replace(',', '').isdigit():
-                return format_macro_count(int(text.replace(',', '')))
+        # --- Strategy 1: The Meta Tag Method ---
+        try:
+            meta_desc = await page.locator('meta[property="og:description"]').get_attribute('content', timeout=5000)
+            if meta_desc:
+                match = re.search(r'([\d.,]+[kmKM]?)\s+Followers', meta_desc, re.IGNORECASE)
+                if match:
+                    raw_val = match.group(1).upper()
+                    raw_int = parse_to_raw_integer(raw_val)
+                    if raw_int > 0:
+                        return format_macro_count(raw_int)
+        except Exception:
+            pass
+            
+        # --- Strategy 2: Raw Text Extraction ---
+        try:
+            await page.wait_for_timeout(2000)
+            text_content = await page.evaluate("document.body.innerText")
+            
+            matches = re.findall(r'([\d.,]+[kmKM]?)\nfollowers', text_content, re.IGNORECASE)
+            if not matches:
+                matches = re.findall(r'([\d.,]+[kmKM]?)\sfollowers', text_content, re.IGNORECASE)
+                
+            if matches:
+                raw_int = parse_to_raw_integer(matches[0].upper())
+                if raw_int > 0:
+                    return format_macro_count(raw_int)
+        except Exception as e:
+            logger.info(f"   [IG Text Extraction Error: {str(e)}]")
+            
         return "Not Found"
     except Exception as e:
         logger.error(f"   [IG Error: {e}]")
