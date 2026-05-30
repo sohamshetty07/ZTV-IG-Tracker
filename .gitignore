@@ -33,3 +33,5 @@ out/
 build/
 
 scraper_engine/config.json
+
+.DS_Store
